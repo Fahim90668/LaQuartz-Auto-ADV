@@ -1,0 +1,2 @@
+-- Local-only seed. Production uses the Discord bot to mint codes.
+-- Empty by design — run tooling/scripts/seed-demo.ts for a scripted bootstrap.
