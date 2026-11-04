@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 const PUBLIC_PATHS = new Set(['/', '/login', '/no-access', '/auth/callback']);
 
@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
     {
       cookies: {
         getAll: () => req.cookies.getAll(),
-        setAll: (cookies) => {
+        setAll: (cookies: { name: string; value: string; options: CookieOptions }[]) => {
           cookies.forEach(({ name, value, options }) => {
             res.cookies.set(name, value, options);
           });
