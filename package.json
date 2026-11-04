@@ -9,10 +9,6 @@
   },
   "scripts": {
     "dev": "turbo run dev --parallel",
-    "dev:web": "turbo run dev --filter=@app/web",
-    "dev:api": "turbo run dev --filter=@app/api",
-    "dev:bot": "turbo run dev --filter=@app/bot",
-    "dev:worker": "turbo run dev --filter=@app/worker",
     "build": "turbo run build",
     "start": "turbo run start --parallel",
     "lint": "turbo run lint",
