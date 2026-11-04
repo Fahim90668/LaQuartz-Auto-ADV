@@ -1,13 +1,12 @@
 'use client';
 
-import { type DiscordAccountDTO } from '@app/shared';
+import type { DiscordAccountDTO } from '@app/shared';
 import { RefreshCw, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { formatRelative } from '@/lib/formatters';
 import { useValidateAccount, useRemoveAccount } from '@/hooks/useAccounts';
 import { useToast } from '@/hooks/useToast';
-import { cn } from '@/components/ui/cn';
 
 const toneFor = (status: DiscordAccountDTO['status']) => {
   if (status === 'active') return 'success' as const;
@@ -88,4 +87,4 @@ export function AccountCard({ account }: { account: DiscordAccountDTO }) {
       </div>
     </div>
   );
-}
+            }
