@@ -1,5 +1,10 @@
 import fp from 'fastify-plugin';
-import { jwtVerify, type JWTPayload } from 'jose';
+import {
+  jwtVerify,
+  createRemoteJWKSet,
+  decodeProtectedHeader,
+  type JWTPayload,
+} from 'jose';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { errors } from '@app/shared';
 import type { Env } from '../env.js';
@@ -15,7 +20,6 @@ interface SupabaseJwtPayload extends JWTPayload {
   email?: string;
   role?: string;
   aud?: string;
-  app_metadata?: { role?: string };
 }
 
 export interface AuthPluginOptions {
@@ -30,16 +34,34 @@ function extractBearer(header: string | undefined): string | null {
   return match ? match[1]!.trim() : null;
 }
 
-async function verifyJwt(token: string, secret: string): Promise<AuthUser> {
-  const key = new TextEncoder().encode(secret);
+async function verifyJwt(token: string, env: Env): Promise<AuthUser> {
+  const header = decodeProtectedHeader(token);
   let payload: SupabaseJwtPayload;
+
   try {
-    const result = await jwtVerify(token, key, {
-      algorithms: ['HS256'],
-      audience: 'authenticated',
-    });
-    payload = result.payload as SupabaseJwtPayload;
+    if (header.alg === 'HS256') {
+      const key = new TextEncoder().encode(env.SUPABASE_JWT_SECRET);
+      const result = await jwtVerify(token, key, {
+        algorithms: ['HS256'],
+        audience: 'authenticated',
+      });
+      payload = result.payload as SupabaseJwtPayload;
+    } else {
+      const jwksUrl = new URL(
+        `${env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`,
+      );
+      const JWKS = createRemoteJWKSet(jwksUrl);
+      const result = await jwtVerify(token, JWKS, {
+        audience: 'authenticated',
+      });
+      payload = result.payload as SupabaseJwtPayload;
+    }
   } catch (err) {
+    console.error(
+      '[auth] JWT verification failed:',
+      (err as Error).message,
+      'alg=' + header.alg,
+    );
     throw errors.notAuthenticated();
   }
 
@@ -67,7 +89,7 @@ export default fp<AuthPluginOptions>(
         throw errors.notAuthenticated();
       }
 
-      req.user = await verifyJwt(token, opts.env.SUPABASE_JWT_SECRET);
+      req.user = await verifyJwt(token, opts.env);
     });
 
     app.decorate('requireAccess', async (req: FastifyRequest, _reply: FastifyReply) => {
@@ -90,4 +112,4 @@ declare module 'fastify' {
   interface FastifyInstance {
     requireAccess: (req: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
-}
+      }
