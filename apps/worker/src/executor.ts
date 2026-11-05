@@ -4,10 +4,8 @@ import {
   playgrounds as playgroundsDb,
   getServiceClient,
 } from '@app/db';
-import {
-  decryptToken,
-  getChannelSlowmode,
-} from '@app/discord';
+import { getChannelSlowmode } from '@app/discord';
+import { decryptToken } from '@app/crypto';
 import type { Database } from '@app/db';
 import type { Env } from './env.js';
 import type { Heartbeat } from './heartbeat.js';
@@ -15,7 +13,7 @@ import { getLogger } from './logger.js';
 import { sendAdvertisement } from './sender.js';
 import { getSlowmodeForChannel } from './slowmode.js';
 import { computeRateLimitWaitMs } from './backoff.js';
-
+import {
 type JobRow = Database['public']['Tables']['scheduled_jobs']['Row'];
 
 const MIN_SLOWMODE_SECONDS = 5;
