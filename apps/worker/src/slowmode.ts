@@ -1,9 +1,6 @@
 import { getServiceClient } from '@app/db';
-import {
-  decryptToken,
-  getChannelSlowmode,
-  type ChannelDetails,
-} from '@app/discord';
+import { getServiceClient } from '@app/db';
+import { getChannelSlowmode, type ChannelDetails } from '@app/discord';
 import { getLogger } from './logger.js';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
