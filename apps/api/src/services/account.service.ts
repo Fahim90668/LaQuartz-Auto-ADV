@@ -1,10 +1,7 @@
 import type { CreateAccountInput, DiscordAccountDTO, UpdateAccountLabelInput } from '@app/shared';
-import { errors, fingerprintToken, decryptToken } from '@app/shared';
+import { errors } from '@app/shared';
 import { accounts as accountsDb } from '@app/db';
-import {
-  encryptToken,
-  fingerprintToken as fpToken,
-} from '@app/crypto';
+import { decryptToken, encryptToken, fingerprintToken as fpToken } from '@app/crypto';
 import { validateToken } from '@app/discord';
 
 export interface ValidatedAccount {
@@ -102,4 +99,4 @@ export async function updateLabel(
 export async function removeAccount(userId: string, accountId: string): Promise<void> {
   const ok = await accountsDb.softDeleteAccount(accountId, userId);
   if (!ok) throw errors.accountNotFound();
-}
+      }
