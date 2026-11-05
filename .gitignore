@@ -37,8 +37,5 @@ coverage/
 supabase/.branches
 supabase/.temp
 
-# Generated
-packages/db/src/types.generated.ts
-
 # TS
 *.tsbuildinfo
