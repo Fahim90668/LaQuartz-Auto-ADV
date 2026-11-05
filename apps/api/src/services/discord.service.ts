@@ -1,23 +1,8 @@
 import type { AccountChannelDTO, AccountServerDTO } from '@app/shared';
 import { errors, ACCOUNT_CACHE_TTL_MS } from '@app/shared';
 import { accounts as accountsDb, getServiceClient } from '@app/db';
-import {
-  decryptToken,
-  listUserGuilds,
-  listGuildChannels,
-  getChannelSlowmode,
-} from '@app/discord';
-import { decryptToken as cryptoDecryptToken } from '@app/crypto';
-
-interface TokenBundle {
-  id: string;
-  userId: string;
-  status: string;
-  ciphertext: Buffer;
-  iv: Buffer;
-  tag: Buffer;
-  keyVersion: number;
-}
+import { listUserGuilds, listGuildChannels, getChannelSlowmode } from '@app/discord';
+import { decryptToken } from '@app/crypto';
 
 async function resolveToken(userId: string, accountId: string): Promise<string> {
   const bundle = await accountsDb.getAccountTokenBundle(accountId);
@@ -190,4 +175,4 @@ export async function readSlowmode(
   const token = await resolveToken(userId, accountId);
   const seconds = await getChannelSlowmode(token, channelId);
   return { channelId, slowmodeSeconds: seconds };
-}
+      }
