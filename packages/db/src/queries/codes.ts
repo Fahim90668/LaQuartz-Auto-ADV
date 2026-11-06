@@ -20,9 +20,13 @@ function toDTO(row: CodeRow): RedeemCodeDTO {
   };
 }
 
-export async function redeemCode(codeHash: string): Promise<RedeemResult> {
+export async function redeemCode(
+  codeHash: string,
+  userId: string,
+): Promise<RedeemResult> {
   const { data, error } = await getServiceClient().rpc('redeem_code', {
     p_code_hash: codeHash,
+    p_user_id: userId,
   });
   if (error) throw error;
 
@@ -109,4 +113,4 @@ export async function listCodesForAdmin(limit = 50): Promise<RedeemCodeDTO[]> {
 
   if (error) throw error;
   return (data ?? []).map(toDTO);
-}
+  }
