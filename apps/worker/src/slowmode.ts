@@ -1,6 +1,5 @@
 import { getServiceClient } from '@app/db';
-import { getServiceClient } from '@app/db';
-import { getChannelSlowmode, type ChannelDetails } from '@app/discord';
+import { getChannelSlowmode } from '@app/discord';
 import { getLogger } from './logger.js';
 
 const CACHE_TTL_MS = 15 * 60 * 1000;
@@ -32,8 +31,7 @@ export async function getSlowmodeForChannel(
   }
 
   try {
-    const channel: ChannelDetails = await getChannelSlowmode(token, channelId);
-    const seconds = typeof channel === 'number' ? channel : 0;
+    const seconds = await getChannelSlowmode(token, channelId);
     slowmodeCache.set(cacheKey, { seconds, fetchedAt: now });
     return { slowmodeSeconds: seconds, fromCache: false };
   } catch (err) {
@@ -49,7 +47,7 @@ export async function getSlowmodeForChannel(
     const { data } = await db
       .from('playground_channels')
       .select('slowmode_seconds')
-      .eq('playground_channel_id', channelId)
+      .eq('channel_id', channelId)
       .maybeSingle();
     return {
       slowmodeSeconds: Number(data?.slowmode_seconds ?? 0),
@@ -66,4 +64,4 @@ export function isSlowmodeCacheStale(accountId: string, channelId: string): bool
   const cached = slowmodeCache.get(`${accountId}:${channelId}`);
   if (!cached) return true;
   return Date.now() - cached.fetchedAt >= CACHE_TTL_MS;
-}
+      }
