@@ -1,7 +1,6 @@
 import type { FastifyPluginAsync } from 'fastify';
 import {
   redeemCodeInputSchema,
-  redeemCode as redeemCodeHash,
   errors,
 } from '@app/shared';
 import { entitlements as entitlementsDb, codes as codesDb } from '@app/db';
@@ -21,22 +20,16 @@ const entitlementRoutes: FastifyPluginAsync = async (app) => {
     rateLimitConfig(5, '1 minute'),
     async (req, reply) => {
       const input = parseBody(redeemCodeInputSchema, req.body);
-      const codeHash = hashRedeemCode(input.code)
-      
-      req.log.info({
-  computedHash: codeHash,
-  secretLen: process.env.CODE_HASH_SECRET?.length,
-  secretFirst8: process.env.CODE_HASH_SECRET?.slice(0, 8),
-  secretLast8: process.env.CODE_HASH_SECRET?.slice(-8),
-  inputCode: input.code,
-}, 'redeem debug');
-const result = await codesDb.redeemCode(codeHash);
+      const codeHash = hashRedeemCode(input.code);
+
+      const result = await codesDb.redeemCode(codeHash, req.user!.id);
 
       if (!result.success) {
         const message = result.message.toLowerCase();
         if (message.includes('already')) throw errors.alreadyRedeemed();
         if (message.includes('revoked')) throw errors.codeDestroyed();
         if (message.includes('expired')) throw errors.codeExpired();
+        if (message.includes('not authenticated')) throw errors.notAuthenticated();
         throw errors.invalidCode();
       }
 
