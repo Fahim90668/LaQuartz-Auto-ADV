@@ -1,10 +1,8 @@
 import {
   accounts as accountsDb,
   jobs as jobsDb,
-  playgrounds as playgroundsDb,
   getServiceClient,
 } from '@app/db';
-import { getChannelSlowmode } from '@app/discord';
 import { decryptToken } from '@app/crypto';
 import type { Database } from '@app/db';
 import type { Env } from './env.js';
@@ -13,7 +11,7 @@ import { getLogger } from './logger.js';
 import { sendAdvertisement } from './sender.js';
 import { getSlowmodeForChannel } from './slowmode.js';
 import { computeRateLimitWaitMs } from './backoff.js';
-import {
+
 type JobRow = Database['public']['Tables']['scheduled_jobs']['Row'];
 
 const MIN_SLOWMODE_SECONDS = 5;
@@ -123,20 +121,13 @@ async function resolveToken(accountId: string): Promise<string | null> {
   }
 }
 
-async function resolveSlowmode(
-  ctx: JobContext,
-  token: string,
-): Promise<number> {
+async function resolveSlowmode(ctx: JobContext, token: string): Promise<number> {
   if (ctx.mode !== 'slowmode') {
     return ctx.intervalSeconds;
   }
 
   try {
-    const result = await getSlowmodeForChannel(
-      ctx.accountId,
-      ctx.channelId,
-      token,
-    );
+    const result = await getSlowmodeForChannel(ctx.accountId, ctx.channelId, token);
     if (result.slowmodeSeconds > 0) {
       return Math.max(MIN_SLOWMODE_SECONDS, result.slowmodeSeconds);
     }
@@ -254,16 +245,9 @@ export async function executeJob(
     httpStatus: sendResult.httpStatus,
   });
 
-  if (
-    sendResult.deliveryStatus === 'invalid_token' &&
-    sendResult.httpStatus === 401
-  ) {
+  if (sendResult.deliveryStatus === 'invalid_token' && sendResult.httpStatus === 401) {
     try {
-      await accountsDb.setAccountValidationStatus(
-        ctx.accountId,
-        'invalid',
-        message,
-      );
+      await accountsDb.setAccountValidationStatus(ctx.accountId, 'invalid', message);
     } catch (err) {
       log.warn('failed to mark account invalid', {
         err: (err as Error).message,
@@ -285,9 +269,7 @@ export async function executeJob(
         playgroundChannelId: job.playground_channel_id,
       });
     } catch (err) {
-      log.warn('failed to deactivate channel', {
-        err: (err as Error).message,
-      });
+      log.warn('failed to deactivate channel', { err: (err as Error).message });
     }
   }
 
@@ -339,4 +321,4 @@ export async function updateMessageUsage(messageId: string | null): Promise<void
   } catch {
     // non-critical
   }
-}
+  }
