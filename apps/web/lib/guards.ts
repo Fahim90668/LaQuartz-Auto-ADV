@@ -12,7 +12,23 @@ export async function requireUser() {
 
 export async function requireAccess() {
   const { supabase, user } = await requireUser();
-  const { data: hasAccess } = await supabase.rpc('fn_has_access', { p_user: user.id });
+
+  const { data: hasAccess, error } = await supabase.rpc('fn_has_access', {
+    p_user: user.id,
+  });
+
+  if (error) {
+    console.error('[guards] fn_has_access RPC failed:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      userId: user.id,
+    });
+    redirect('/no-access');
+  }
+
   if (!hasAccess) redirect('/no-access');
+
   return { supabase, user };
 }
