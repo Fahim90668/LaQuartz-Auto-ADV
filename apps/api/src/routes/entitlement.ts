@@ -21,9 +21,16 @@ const entitlementRoutes: FastifyPluginAsync = async (app) => {
     rateLimitConfig(5, '1 minute'),
     async (req, reply) => {
       const input = parseBody(redeemCodeInputSchema, req.body);
-      const codeHash = hashRedeemCode(input.code);
-
-      const result = await codesDb.redeemCode(codeHash);
+      const codeHash = hashRedeemCode(input.code)
+      
+      req.log.info({
+  computedHash: codeHash,
+  secretLen: process.env.CODE_HASH_SECRET?.length,
+  secretFirst8: process.env.CODE_HASH_SECRET?.slice(0, 8),
+  secretLast8: process.env.CODE_HASH_SECRET?.slice(-8),
+  inputCode: input.code,
+}, 'redeem debug');
+const result = await codesDb.redeemCode(codeHash);
 
       if (!result.success) {
         const message = result.message.toLowerCase();
