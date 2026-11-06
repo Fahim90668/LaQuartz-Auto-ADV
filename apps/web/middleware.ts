@@ -39,9 +39,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  const { data: hasAccess } = await supabase.rpc('fn_has_access', { p_user: user.id });
+  const { data: hasAccess, error: accessError } = await supabase.rpc('fn_has_access', {
+    p_user: user.id,
+  });
 
-  if (!hasAccess) {
+  if (accessError) {
+    console.error('[middleware] fn_has_access RPC failed:', {
+      message: accessError.message,
+      code: accessError.code,
+      details: accessError.details,
+      hint: accessError.hint,
+      userId: user.id,
+      pathname,
+    });
+  }
+
+  if (accessError || !hasAccess) {
     if (pathname !== '/redeem') {
       const url = req.nextUrl.clone();
       url.pathname = '/no-access';
