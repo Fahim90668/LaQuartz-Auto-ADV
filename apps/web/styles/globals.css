@@ -61,18 +61,7 @@ select {
   font: inherit;
 }
 
-/* Reduce motion */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
+/* ── Keyframes ─────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0% { background-position: -400px 0; }
   100% { background-position: 400px 0; }
@@ -89,7 +78,24 @@ select {
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes slide-in-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+@keyframes slide-out-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
 
+/* ── Animation utilities ──────────────────────────────── */
 .animate-skeleton {
   background: linear-gradient(
     90deg,
@@ -109,3 +115,23 @@ select {
 .animate-modal-in {
   animation: modal-in 200ms ease-out;
 }
+
+/* ── Reduced motion ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .animate-skeleton {
+    animation: none;
+    background: var(--bg-surface-2);
+  }
+  [data-state='open'],
+  [data-state='closed'] {
+    animation: none !important;
+  }
+        }
