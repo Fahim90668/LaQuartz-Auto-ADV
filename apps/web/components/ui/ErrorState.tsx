@@ -16,7 +16,7 @@ export function ErrorState({ title = 'Something went wrong', message, onRetry }:
         <AlertTriangle className="h-6 w-6" />
       </div>
       <div>
-        <p className="text-h3 font-semibold text-text-primary">{title}</p>
+        <p className="text-step-1 font-semibold text-text-primary">{title}</p>
         <p className="mt-1 text-sm text-text-secondary">{message}</p>
       </div>
       {onRetry && (
