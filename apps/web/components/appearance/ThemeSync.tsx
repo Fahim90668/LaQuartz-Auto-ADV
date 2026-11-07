@@ -3,11 +3,6 @@
 import { useEffect } from 'react';
 import { useAppearance } from '@/hooks/useAppearance';
 
-/**
- * Applies the current appearance state to <html> as data attributes.
- * Idempotent — safe to run after the inline no-FOUC script has already
- * set them. Ensures runtime theme changes (from the dialog) take effect.
- */
 export function ThemeSync() {
   const mode = useAppearance((s) => s.mode);
   const theme = useAppearance((s) => s.theme);
@@ -21,4 +16,4 @@ export function ThemeSync() {
   }, [mode, theme, accent]);
 
   return null;
-}
+    }
