@@ -11,6 +11,8 @@ export class Scheduler {
   private running = false;
   private timer: NodeJS.Timeout | null = null;
   private active = 0;
+  private consecutiveFailures = 0;
+  private pausedUntil = 0;
 
   constructor(
     private readonly env: Env,
@@ -42,7 +44,20 @@ export class Scheduler {
 
   private scheduleNext(): void {
     if (!this.running) return;
-    this.timer = setTimeout(() => void this.tick(), this.env.WORKER_POLL_MS);
+
+    // Backoff after repeated failures: 1s → 2s → 4s → 8s → 10s (cap).
+    // Prevents the "spam Supabase while it's rejecting" pattern that
+    // cascades into fetch-fail death spirals on constrained containers.
+    let delay = this.env.WORKER_POLL_MS;
+    if (this.consecutiveFailures > 0) {
+      const backoff = Math.min(10_000, 1000 * Math.pow(2, this.consecutiveFailures - 1));
+      delay = Math.max(delay, backoff);
+    }
+
+    const waitMs = Math.max(0, this.pausedUntil - Date.now());
+    const finalDelay = Math.max(delay, waitMs);
+
+    this.timer = setTimeout(() => void this.tick(), finalDelay);
   }
 
   private async tick(): Promise<void> {
@@ -50,28 +65,49 @@ export class Scheduler {
 
     try {
       const capacity = this.env.WORKER_CONCURRENCY - this.active;
-      if (capacity <= 0) {
-        this.scheduleNext();
-        return;
-      }
 
-      const jobs: JobRow[] = await jobsDb.claimDueJobs(capacity, this.env.WORKER_ID);
-      if (jobs.length === 0) {
-        this.scheduleNext();
-        return;
-      }
+      if (capacity > 0) {
+        const jobs: JobRow[] = await jobsDb.claimDueJobs(capacity, this.env.WORKER_ID);
 
-      getLogger().debug('claimed jobs', { count: jobs.length });
+        if (jobs.length > 0) {
+          getLogger().debug('claimed jobs', { count: jobs.length });
 
-      for (const job of jobs) {
-        this.active++;
-        void this.runOne(job).finally(() => {
-          this.active--;
-        });
+          for (const job of jobs) {
+            this.active++;
+            void this.runOne(job).finally(() => {
+              this.active--;
+            });
+          }
+        }
+
+        // Success → reset failure counter
+        this.consecutiveFailures = 0;
+        this.pausedUntil = 0;
       }
     } catch (err) {
-      getLogger().error('scheduler tick failed', { err: (err as Error).message });
+      this.consecutiveFailures += 1;
+
+      // Extract the underlying cause. Node's undici wraps DNS/TLS/timeout
+      // errors inside err.cause — without it, the message is just "fetch failed".
+      const cause = (err as { cause?: { message?: string; code?: string } }).cause;
+      getLogger().error('scheduler tick failed', {
+        err: (err as Error).message,
+        causeMessage: cause?.message ?? null,
+        causeCode: cause?.code ?? null,
+        consecutiveFailures: this.consecutiveFailures,
+      });
+
+      // After 5 consecutive failures, pause for 15s. Stops CPU thrashing
+      // and gives Supabase / the container network time to recover.
+      if (this.consecutiveFailures >= 5) {
+        this.pausedUntil = Date.now() + 15_000;
+        getLogger().warn('scheduler pausing after repeated failures', {
+          consecutiveFailures: this.consecutiveFailures,
+          pauseMs: 15_000,
+        });
+      }
     } finally {
+      // SINGLE scheduleNext per tick — inside finally only.
       this.scheduleNext();
     }
   }
@@ -104,4 +140,4 @@ export class Scheduler {
   getActiveCount(): number {
     return this.active;
   }
-}
+                                          }
