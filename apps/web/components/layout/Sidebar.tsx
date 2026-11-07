@@ -39,7 +39,7 @@ function SidebarInner({
       <div className="flex h-[var(--topbar-height)] items-center justify-between border-b border-border-subtle px-4">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[image:var(--grad-brand)] shadow-md">
-            <Zap className="h-4 w-4 text-white" />
+            <Zap className="h-4 w-4 text-[color:var(--accent-fg)]" />
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-text-primary">
@@ -100,12 +100,10 @@ export interface SidebarProps {
 export function Sidebar({ open, onOpenChange }: SidebarProps) {
   return (
     <>
-      {/* Desktop — static column, ≥1024px */}
       <aside className="hidden h-screen w-[var(--sidebar-width)] shrink-0 border-r border-border-subtle lg:block">
         <SidebarInner />
       </aside>
 
-      {/* Mobile — Radix Dialog overlay, <1024px */}
       <Dialog.Root open={open} onOpenChange={onOpenChange}>
         <Dialog.Portal>
           <Dialog.Overlay
@@ -132,4 +130,4 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
       </Dialog.Root>
     </>
   );
-      }
+}
