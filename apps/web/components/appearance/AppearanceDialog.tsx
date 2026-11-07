@@ -43,29 +43,20 @@ export function AppearanceDialog() {
   return (
     <Dialog
       open={dialogOpen}
-      onOpenChange={(open) => {
-        if (!open) closeDialog();
-      }}
+      onOpenChange={(open) => { if (!open) closeDialog(); }}
       title="Appearance"
       description="Customize the panel theme. Saved to this browser only."
       size="lg"
       footer={
         <>
-          <Button variant="ghost" size="sm" onClick={reset}>
-            Reset to defaults
-          </Button>
-          <Button variant="secondary" size="sm" onClick={closeDialog}>
-            Done
-          </Button>
+          <Button variant="ghost" size="sm" onClick={reset}>Reset to defaults</Button>
+          <Button variant="secondary" size="sm" onClick={closeDialog}>Done</Button>
         </>
       }
     >
       <div className="space-y-5">
-        {/* Base mode */}
         <section>
-          <h4 className="mb-2 text-step--2 uppercase tracking-wider text-text-tertiary">
-            Base mode
-          </h4>
+          <h4 className="mb-2 text-step--2 uppercase tracking-wider text-text-tertiary">Base mode</h4>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {MODES.map((m) => (
               <button
@@ -80,25 +71,17 @@ export function AppearanceDialog() {
                     : 'border-border-subtle hover:border-border-strong',
                 )}
               >
-                <span
-                  className="h-10 w-full rounded-md border border-border-subtle"
-                  style={{ background: m.swatch }}
-                />
+                <span className="h-10 w-full rounded-md border border-border-subtle" style={{ background: m.swatch }} />
                 <span className="text-step--1 font-medium text-text-primary">{m.label}</span>
                 <span className="text-step--2 text-text-tertiary">{m.hint}</span>
-                {mode === m.key && (
-                  <Check className="absolute right-1.5 top-1.5 h-3 w-3 break-color" />
-                )}
+                {mode === m.key && <Check className="absolute right-1.5 top-1.5 h-3 w-3 break-color" />}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Gradient theme */}
         <section>
-          <h4 className="mb-2 text-step--2 uppercase tracking-wider text-text-tertiary">
-            Gradient theme
-          </h4>
+          <h4 className="mb-2 text-step--2 uppercase tracking-wider text-text-tertiary">Gradient theme</h4>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {THEMES.map((t) => (
               <button
@@ -116,21 +99,14 @@ export function AppearanceDialog() {
                 <span className="h-12 w-full rounded-md" style={{ background: t.swatch }} />
                 <div className="flex items-center justify-between">
                   <span className="text-step--1 font-medium text-text-primary">{t.label}</span>
-                  <span
-                    className="h-2 w-2 rounded-full"
-                    style={{ background: t.breakColor }}
-                    aria-hidden
-                  />
+                  <span className="h-2 w-2 rounded-full" style={{ background: t.breakColor }} aria-hidden />
                 </div>
-                {theme === t.key && (
-                  <Check className="absolute right-2 top-2 h-3 w-3 break-color" />
-                )}
+                {theme === t.key && <Check className="absolute right-2 top-2 h-3 w-3 break-color" />}
               </button>
             ))}
           </div>
         </section>
 
-        {/* Accent */}
         <section>
           <h4 className="mb-2 text-step--2 uppercase tracking-wider text-text-tertiary">Accent</h4>
           <div className="flex flex-wrap gap-2">
@@ -148,32 +124,14 @@ export function AppearanceDialog() {
                     ? 'border-text-primary'
                     : 'border-border-subtle hover:border-border-strong',
                 )}
-                style={
-                  accent === a.key
-                    ? { boxShadow: `0 0 0 2px ${a.color}` }
-                    : undefined
-                }
+                style={accent === a.key ? { boxShadow: `0 0 0 2px ${a.color}` } : undefined}
               >
                 <span className="h-6 w-6 rounded-full" style={{ background: a.color }} />
               </button>
             ))}
           </div>
-          <p className="mt-2 text-step--2 text-text-tertiary">
-            Used on decorative highlights and the notification badge.
-          </p>
-        </section>
-
-        <section className="rounded-md border border-border-subtle bg-surface-2/50 p-3">
-          <p className="text-step--2 text-text-tertiary">
-            <strong className="text-text-secondary">Note:</strong> Appearance is saved to this
-            browser only. Signing in on another device starts fresh. Backend sync via{' '}
-            <code className="rounded bg-surface-3 px-1 font-mono text-text-secondary">
-              profiles.appearance
-            </code>{' '}
-            is planned.
-          </p>
         </section>
       </div>
     </Dialog>
   );
-}
+  }
