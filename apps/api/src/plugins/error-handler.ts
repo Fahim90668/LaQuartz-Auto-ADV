@@ -8,6 +8,7 @@ export default fp(
   async function errorHandlerPlugin(app: FastifyInstance) {
     app.setErrorHandler(
       (err: FastifyError | Error, req: FastifyRequest, reply: FastifyReply) => {
+        // 1. App errors carry their own code + statusCode
         if (isAppError(err)) {
           req.log.info(
             { code: err.code, statusCode: err.statusCode, path: req.url },
@@ -16,6 +17,7 @@ export default fp(
           return reply.code(err.statusCode).send(err.toJSON(req.id));
         }
 
+        // 2. Zod validation errors
         if (err instanceof ZodError) {
           return reply.code(422).send({
             error: {
@@ -27,6 +29,7 @@ export default fp(
           });
         }
 
+        // 3. Discord REST errors → 502
         if (err instanceof DiscordHttpError) {
           req.log.warn({ mapped: err.mapped, path: req.url }, 'Discord API error');
           return reply.code(502).send({
@@ -43,6 +46,7 @@ export default fp(
           });
         }
 
+        // 4. Fastify schema validation (route params, querystring)
         if ((err as FastifyError).validation) {
           return reply.code(400).send({
             error: {
@@ -53,16 +57,24 @@ export default fp(
           });
         }
 
-        if ((err as FastifyError).statusCode === 429) {
-          return reply.code(429).send({
+        // 5. Any FastifyError with a statusCode (400, 401, 404, 413, 415, 429, ...)
+        //    Respect it instead of forcing 500.
+        const fe = err as FastifyError;
+        if (typeof fe.statusCode === 'number' && fe.statusCode >= 400 && fe.statusCode < 500) {
+          req.log.warn(
+            { code: fe.code, statusCode: fe.statusCode, path: req.url },
+            fe.message,
+          );
+          return reply.code(fe.statusCode).send({
             error: {
-              code: 'RATE_LIMITED',
-              message: err.message,
+              code: fe.code ?? 'CLIENT_ERROR',
+              message: fe.message,
               requestId: req.id,
             },
           });
         }
 
+        // 6. Everything else → 500
         req.log.error({ err, path: req.url }, 'Unhandled error');
         return reply.code(500).send({
           error: {
