@@ -16,8 +16,8 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
       .setName('code')
       .setDescription('Full code value.')
       .setRequired(true)
-      .setMinLength(20)
-      .setMaxLength(32),
+      .setMinLength(19)
+      .setMaxLength(19),
   )
   .setDMPermission(false);
 
@@ -87,4 +87,4 @@ export async function execute(
   }
 
   await interaction.editReply({ embeds: [embed] });
-}
+    }
