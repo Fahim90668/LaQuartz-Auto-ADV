@@ -43,7 +43,7 @@ function LoginContent() {
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-[image:var(--grad-brand)] shadow-glow">
             <Zap className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-h1 font-semibold text-text-primary">Auto Advertiser</h1>
+          <h1 className="text-step-4 font-semibold text-text-primary">LaQuartz AUTO-ADV</h1>
           <p className="mt-2 text-sm text-text-secondary">
             License-gated Discord advertising automation.
           </p>
