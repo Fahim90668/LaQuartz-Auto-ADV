@@ -39,20 +39,25 @@ async function loadContext(job: JobRow): Promise<JobContext | null> {
   if (chErr) throw chErr;
   if (!channel || !channel.is_active) return null;
 
+  // Fetch playground WITHOUT the embedded discord_accounts join.
+  // PostgREST cannot auto-detect the composite FK
+  // (account_id, user_id) -> discord_accounts(id, user_id), so embeds fail
+  // with PGRST200. Fetch the account as a separate query.
   const { data: playground, error: pgErr } = await db
     .from('playgrounds')
-    .select(
-      'id, user_id, account_id, mode, interval_seconds, status, discord_accounts(id, status)',
-    )
+    .select('id, user_id, account_id, mode, interval_seconds, status')
     .eq('id', job.playground_id)
     .maybeSingle();
   if (pgErr) throw pgErr;
   if (!playground) return null;
   if (playground.status !== 'running') return null;
 
-  const account = (
-    playground as unknown as { discord_accounts: { id: string; status: string } | null }
-  ).discord_accounts;
+  const { data: account, error: acErr } = await db
+    .from('discord_accounts')
+    .select('id, status')
+    .eq('id', playground.account_id)
+    .maybeSingle();
+  if (acErr) throw acErr;
   if (!account || account.status !== 'active') return null;
 
   let messageContent: string | null = null;
@@ -155,7 +160,12 @@ export async function executeJob(
   try {
     ctx = await loadContext(job);
   } catch (err) {
-    log.error('job context load failed', { err: (err as Error).message });
+    const cause = (err as { cause?: { message?: string; code?: string } }).cause;
+    log.error('job context load failed', {
+      err: (err as Error).message,
+      causeMessage: cause?.message ?? null,
+      causeCode: cause?.code ?? null,
+    });
     await jobsDb.failJob({
       jobId: job.id,
       error: `context_load_failed: ${(err as Error).message}`,
@@ -321,4 +331,4 @@ export async function updateMessageUsage(messageId: string | null): Promise<void
   } catch {
     // non-critical
   }
-  }
+    }
