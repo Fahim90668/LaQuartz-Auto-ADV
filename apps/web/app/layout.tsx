@@ -3,7 +3,7 @@ import { Providers } from '@/components/layout/Providers';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Discord Auto-Advertiser',
+  title: 'LaQuartz AUTO-ADV',
   description: 'License-gated Discord advertising automation.',
   robots: { index: false, follow: false },
 };
