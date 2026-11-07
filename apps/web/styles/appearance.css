@@ -1,167 +1,21 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   APPEARANCE SYSTEM
-   Applied via [data-mode], [data-theme], [data-accent] on <html>.
-   Priority order (later wins):
-     1. :root defaults (tokens.css)
-     2. [data-mode='…']       — surfaces + text + borders
-     3. [data-theme='…']      — background-image gradient + --break
-     4. [data-theme='porcelain'] — full light override (surfaces + text)
-     5. [data-accent='…']     — --accent
-
-   A gradient theme only overrides the background *layer*; the base mode
-   controls the surface/text colors. Exception: 'porcelain' is a full
-   light scheme, so it overrides surfaces too.
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* ─── Base modes ─────────────────────────────────────────────────────── */
-
-[data-mode='black'] {
-  --bg-canvas: #000000;
-  --bg-surface: #0A0A0A;
-  --bg-surface-2: #141414;
-  --bg-surface-3: #1E1E1E;
-  --text-primary: #F4EEFF;
-  --text-secondary: #B8AEC9;
-  --text-tertiary: #7A6E8C;
-  --text-disabled: #4D4259;
-  --border-subtle: #1F1F1F;
-  --border-strong: #2E2E2E;
+/* ─── Gradient shell ─────────────────────────────────────────────────── */
+/* Applied to the top-level layout wrappers so the body gradient shows
+   through instead of being covered by an opaque bg-canvas div. */
+.app-shell {
+  background-color: transparent;
 }
 
-[data-mode='obsidian'] {
-  --bg-canvas: #0A0710;
-  --bg-surface: #120D1A;
-  --bg-surface-2: #1A1425;
-  --bg-surface-3: #241B33;
-  --text-primary: #F4EEFF;
-  --text-secondary: #B8AEC9;
-  --text-tertiary: #7A6E8C;
-  --text-disabled: #4D4259;
-  --border-subtle: #2A2138;
-  --border-strong: #3D2E52;
+/* ─── Accent-driven elements ────────────────────────────────────────── */
+/* Sidebar active dot */
+.accent-dot {
+  background-color: var(--accent, var(--brand-neon));
 }
-
-[data-mode='gray'] {
-  --bg-canvas: #1E1F22;
-  --bg-surface: #2B2D31;
-  --bg-surface-2: #313338;
-  --bg-surface-3: #383A40;
-  --text-primary: #F2F3F5;
-  --text-secondary: #B5BAC1;
-  --text-tertiary: #80848E;
-  --text-disabled: #4E5058;
-  --border-subtle: #3F4147;
-  --border-strong: #4E5058;
+/* Running status pulse */
+.accent-pulse {
+  background-color: var(--accent, var(--success));
+  animation: pulse-dot 2s ease-in-out infinite;
 }
-
-[data-mode='white'] {
-  --bg-canvas: #FAFAFA;
-  --bg-surface: #FFFFFF;
-  --bg-surface-2: #F5F5F7;
-  --bg-surface-3: #EBEBEF;
-  --text-primary: #0A0710;
-  --text-secondary: #3D3450;
-  --text-tertiary: #5C5266;
-  --text-disabled: #A89EB8;
-  --border-subtle: #E5E5EA;
-  --border-strong: #D4D4DC;
-}
-
-/* ─── Gradient themes ────────────────────────────────────────────────── */
-/* All dark gradients pair naturally with any dark base mode.            */
-/* Porcelain is a light theme — see next block for surface overrides.    */
-
-[data-theme='aurora'] {
-  --grad-bg: linear-gradient(180deg, #0A0710 0%, #1A0B2E 100%);
-  --break: #22D3EE; /* cyan */
-}
-[data-theme='ember'] {
-  --grad-bg: linear-gradient(180deg, #0F0505 0%, #2D0F0F 100%);
-  --break: #F59E0B; /* amber */
-}
-[data-theme='mint'] {
-  --grad-bg: linear-gradient(180deg, #051210 0%, #0A2A24 100%);
-  --break: #F472B6; /* pink */
-}
-[data-theme='ink'] {
-  --grad-bg: linear-gradient(180deg, #0A0A0A 0%, #1A1A1A 100%);
-  --break: #3B82F6; /* electric blue */
-}
-[data-theme='porcelain'] {
-  --grad-bg: linear-gradient(180deg, #FAFAFA 0%, #F5F5F7 100%);
-  --break: #06B6D4; /* cyan */
-
-  /* Full light override — forces readable text regardless of base mode */
-  --bg-canvas: #FAFAFA;
-  --bg-surface: #FFFFFF;
-  --bg-surface-2: #F5F5F7;
-  --bg-surface-3: #EBEBEF;
-  --text-primary: #0A0710;
-  --text-secondary: #3D3450;
-  --text-tertiary: #5C5266;
-  --text-disabled: #A89EB8;
-  --border-subtle: #E5E5EA;
-  --border-strong: #D4D4DC;
-}
-
-/* ─── Accent (user-chosen, independent of theme break) ───────────────── */
-
-[data-accent='brand']  { --accent: #E85BFF; }
-[data-accent='cyan']   { --accent: #22D3EE; }
-[data-accent='amber']  { --accent: #F59E0B; }
-[data-accent='pink']   { --accent: #F472B6; }
-[data-accent='blue']   { --accent: #3B82F6; }
-
-/* ─── Apply gradient on top of flat canvas ───────────────────────────── */
-body {
-  background-color: var(--bg-canvas);
-  background-image: var(--grad-bg, none);
-  background-attachment: fixed;
-}
-
-/* Respect reduced motion + transparency preferences */
-@media (prefers-reduced-transparency: reduce) {
-  body {
-    background-image: none;
-  }
-}
-
-/* ─── Utility classes using --break / --accent ───────────────────────── */
-
-.break-color {
-  color: var(--break);
-}
-.break-bg {
-  background-color: var(--break);
-}
+/* Docs TOC active pill (already exists, kept for parity) */
 .accent-color {
-  color: var(--accent);
+  color: var(--accent, var(--brand-pink));
 }
-.accent-bg {
-  background-color: var(--accent);
-}
-
-/* ─── Palette documentation ──────────────────────────────────────────
-   Mode      | canvas   | surface  | text-primary | text-secondary | contrast
-   ─────────────────────────────────────────────────────────────────────────
-   black     | #000000  | #0A0A0A  | #F4EEFF      | #B8AEC9        | 18.9:1 / 11.3:1
-   obsidian  | #0A0710  | #120D1A  | #F4EEFF      | #B8AEC9        | 17.1:1 / 10.2:1
-   gray      | #1E1F22  | #2B2D31  | #F2F3F5      | #B5BAC1        | 12.4:1 /  7.6:1
-   white     | #FAFAFA  | #FFFFFF  | #0A0710      | #3D3450        | 17.8:1 /  9.5:1
-
-   Theme      | gradient from→to      | break    | text on mid-gradient
-   ─────────────────────────────────────────────────────────────────────────
-   aurora     | #0A0710 → #1A0B2E     | #22D3EE  | 14.8:1
-   ember      | #0F0505 → #2D0F0F     | #F59E0B  | 15.2:1
-   mint       | #051210 → #0A2A24     | #F472B6  | 14.1:1
-   ink        | #0A0A0A → #1A1A1A     | #3B82F6  | 15.7:1
-   porcelain  | #FAFAFA → #F5F5F7     | #06B6D4  | 15.1:1 (dark text)
-
-   Accent     | hex      | usage
-   ─────────────────────────────────────────────────────────────────────────
-   brand      | #E85BFF  | default — mirrors brand-pink
-   cyan       | #22D3EE  | cool electric
-   amber      | #F59E0B  | warm highlight
-   pink       | #F472B6  | soft magenta
-   blue       | #3B82F6  | technical
-   ───────────────────────────────────────────────────────────────────────── */
