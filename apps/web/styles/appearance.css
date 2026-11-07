@@ -1,21 +1,125 @@
-/* ─── Gradient shell ─────────────────────────────────────────────────── */
-/* Applied to the top-level layout wrappers so the body gradient shows
-   through instead of being covered by an opaque bg-canvas div. */
-.app-shell {
-  background-color: transparent;
+/* ═══════════════════════════════════════════════════════════════════════
+   APPEARANCE SYSTEM
+   Uses html[data-*] instead of bare [data-*] so specificity (0,1,1)
+   beats :root's (0,1,0) regardless of Next.js CSS bundling order.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Base modes ─────────────────────────────────────────────────────── */
+
+html[data-mode='black'] {
+  --bg-canvas: #000000;
+  --bg-surface: #0A0A0A;
+  --bg-surface-2: #141414;
+  --bg-surface-3: #1E1E1E;
+  --text-primary: #F4EEFF;
+  --text-secondary: #B8AEC9;
+  --text-tertiary: #7A6E8C;
+  --text-disabled: #4D4259;
+  --border-subtle: #1F1F1F;
+  --border-strong: #2E2E2E;
 }
 
-/* ─── Accent-driven elements ────────────────────────────────────────── */
-/* Sidebar active dot */
-.accent-dot {
-  background-color: var(--accent, var(--brand-neon));
+html[data-mode='obsidian'] {
+  --bg-canvas: #0A0710;
+  --bg-surface: #120D1A;
+  --bg-surface-2: #1A1425;
+  --bg-surface-3: #241B33;
+  --text-primary: #F4EEFF;
+  --text-secondary: #B8AEC9;
+  --text-tertiary: #7A6E8C;
+  --text-disabled: #4D4259;
+  --border-subtle: #2A2138;
+  --border-strong: #3D2E52;
 }
-/* Running status pulse */
+
+html[data-mode='gray'] {
+  --bg-canvas: #1E1F22;
+  --bg-surface: #2B2D31;
+  --bg-surface-2: #313338;
+  --bg-surface-3: #383A40;
+  --text-primary: #F2F3F5;
+  --text-secondary: #B5BAC1;
+  --text-tertiary: #80848E;
+  --text-disabled: #4E5058;
+  --border-subtle: #3F4147;
+  --border-strong: #4E5058;
+}
+
+html[data-mode='white'] {
+  --bg-canvas: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-2: #F5F5F7;
+  --bg-surface-3: #EBEBEF;
+  --text-primary: #0A0710;
+  --text-secondary: #3D3450;
+  --text-tertiary: #5C5266;
+  --text-disabled: #A89EB8;
+  --border-subtle: #E5E5EA;
+  --border-strong: #D4D4DC;
+}
+
+/* ─── Gradient themes ────────────────────────────────────────────────── */
+
+html[data-theme='aurora'] {
+  --grad-bg: linear-gradient(180deg, #0A0710 0%, #1A0B2E 100%);
+  --break: #22D3EE;
+}
+html[data-theme='ember'] {
+  --grad-bg: linear-gradient(180deg, #0F0505 0%, #2D0F0F 100%);
+  --break: #F59E0B;
+}
+html[data-theme='mint'] {
+  --grad-bg: linear-gradient(180deg, #051210 0%, #0A2A24 100%);
+  --break: #F472B6;
+}
+html[data-theme='ink'] {
+  --grad-bg: linear-gradient(180deg, #0A0A0A 0%, #1A1A1A 100%);
+  --break: #3B82F6;
+}
+html[data-theme='porcelain'] {
+  --grad-bg: linear-gradient(180deg, #FAFAFA 0%, #F5F5F7 100%);
+  --break: #06B6D4;
+  --bg-canvas: #FAFAFA;
+  --bg-surface: #FFFFFF;
+  --bg-surface-2: #F5F5F7;
+  --bg-surface-3: #EBEBEF;
+  --text-primary: #0A0710;
+  --text-secondary: #3D3450;
+  --text-tertiary: #5C5266;
+  --text-disabled: #A89EB8;
+  --border-subtle: #E5E5EA;
+  --border-strong: #D4D4DC;
+}
+
+/* ─── Accent ──────────────────────────────────────────────────────────── */
+
+html[data-accent='brand']  { --accent: #E85BFF; }
+html[data-accent='cyan']   { --accent: #22D3EE; }
+html[data-accent='amber']  { --accent: #F59E0B; }
+html[data-accent='pink']   { --accent: #F472B6; }
+html[data-accent='blue']   { --accent: #3B82F6; }
+
+/* ─── Gradient on body ───────────────────────────────────────────────── */
+/* NOTE: uses background-image only, NOT the `background` shorthand,
+   so it can't accidentally reset background-color set by globals.css */
+
+body {
+  background-color: var(--bg-canvas);
+  background-image: var(--grad-bg, none);
+  background-attachment: fixed;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body { background-image: none; }
+}
+
+/* ─── Utility classes ────────────────────────────────────────────────── */
+
+.app-shell { background-color: transparent; }
+.accent-dot { background-color: var(--accent, var(--brand-neon)); }
 .accent-pulse {
   background-color: var(--accent, var(--success));
   animation: pulse-dot 2s ease-in-out infinite;
 }
-/* Docs TOC active pill (already exists, kept for parity) */
-.accent-color {
-  color: var(--accent, var(--brand-pink));
-}
+.accent-color { color: var(--accent, var(--brand-pink)); }
+.break-color { color: var(--break); }
