@@ -11,6 +11,7 @@ import {
   Sparkles,
   Ticket,
   Settings,
+  BookOpen,
 } from 'lucide-react';
 import { NavItem } from './NavItem';
 import { cn } from '@/components/ui/cn';
@@ -20,6 +21,7 @@ const items = [
   { href: '/accounts',    label: 'Accounts',    icon: Users },
   { href: '/playgrounds', label: 'Playgrounds', icon: Sparkles },
   { href: '/redeem',      label: 'Redeem',      icon: Ticket },
+  { href: '/docs',        label: 'Docs',        icon: BookOpen },
   { href: '/settings',    label: 'Settings',    icon: Settings },
 ];
 
@@ -34,13 +36,15 @@ function SidebarInner({
 
   return (
     <div className="flex h-full flex-col bg-surface">
-      <div className="flex h-[var(--topbar-height)] items-center justify-between border-b border-border-subtle px-5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[image:var(--grad-brand)] shadow-md">
+      <div className="flex h-[var(--topbar-height)] items-center justify-between border-b border-border-subtle px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[image:var(--grad-brand)] shadow-md">
             <Zap className="h-4 w-4 text-white" />
           </div>
-          <div>
-            <p className="text-sm font-semibold text-text-primary">LaQuartz AUTO-ADV</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-text-primary">
+              LaQuartz AUTO-ADV
+            </p>
             <p className="text-[10px] uppercase tracking-wider text-text-tertiary">Panel</p>
           </div>
         </div>
@@ -49,7 +53,7 @@ function SidebarInner({
           <Dialog.Close asChild>
             <button
               type="button"
-              className="rounded p-2 text-text-tertiary hover:bg-surface-2 hover:text-text-primary"
+              className="shrink-0 rounded p-2 text-text-tertiary hover:bg-surface-2 hover:text-text-primary"
               aria-label="Close navigation"
             >
               <X className="h-4 w-4" />
@@ -128,4 +132,4 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
       </Dialog.Root>
     </>
   );
-  }
+      }
