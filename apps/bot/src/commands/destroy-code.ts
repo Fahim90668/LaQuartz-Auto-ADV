@@ -14,9 +14,7 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
     opt
       .setName('code')
       .setDescription('The full code to destroy (e.g. ADVT-XXXX-XXXX-XXXX).')
-      .setRequired(true)
-      .setMinLength(19)
-      .setMaxLength(19),
+      .setRequired(true),
   )
   .setDMPermission(false);
 
@@ -82,4 +80,4 @@ export async function execute(
       embeds: [errorEmbed('❌ Destruction Failed', message)],
     });
   }
-}
+      }
