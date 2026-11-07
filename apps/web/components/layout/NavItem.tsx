@@ -9,15 +9,18 @@ export interface NavItemProps {
   label: string;
   icon: LucideIcon;
   active: boolean;
+  onClick?: () => void;
 }
 
-export function NavItem({ href, label, icon: Icon, active }: NavItemProps) {
+export function NavItem({ href, label, icon: Icon, active, onClick }: NavItemProps) {
   return (
     <Link
       href={href}
+      onClick={onClick}
       aria-current={active ? 'page' : undefined}
       className={cn(
-        'group flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors',
+        'group flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors',
+        'lg:min-h-0 lg:py-2',
         active
           ? 'bg-brand-primary/10 text-text-primary'
           : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary',
@@ -25,12 +28,12 @@ export function NavItem({ href, label, icon: Icon, active }: NavItemProps) {
     >
       <Icon
         className={cn(
-          'h-4 w-4 transition-colors',
+          'h-4 w-4 shrink-0 transition-colors',
           active ? 'text-brand-pink' : 'text-text-tertiary group-hover:text-text-secondary',
         )}
       />
-      <span className="font-medium">{label}</span>
-      {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-brand-neon" />}
+      <span className="truncate font-medium">{label}</span>
+      {active && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-brand-neon" />}
     </Link>
   );
 }
