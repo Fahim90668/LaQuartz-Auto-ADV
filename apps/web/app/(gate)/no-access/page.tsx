@@ -4,7 +4,7 @@ import { requireUser } from '@/lib/guards';
 export default async function NoAccessPage() {
   await requireUser();
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas p-4">
+    <div className="app-shell flex min-h-screen items-center justify-center p-4">
       <NoAccessCard />
     </div>
   );
