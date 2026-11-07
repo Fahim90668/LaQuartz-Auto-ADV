@@ -12,7 +12,6 @@ html,
 body {
   padding: 0;
   margin: 0;
-  background: var(--bg-canvas);
   color: var(--text-primary);
   font-family: 'InterVariable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
@@ -20,14 +19,34 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── IMPORTANT: re-apply body background AFTER Tailwind base ────────
-   Tailwind's preflight sets `background: transparent` on body, which
-   can override the `background: var(--bg-canvas)` above in the cascade.
-   This explicit re-application ensures the theme background always wins. */
+/* ─── Fixed gradient layer ─────────────────────────────────────────────
+   Background gradients are painted on a real fixed-position element
+   instead of `body { background-attachment: fixed }` because:
+     - iOS Safari does not render `background-attachment: fixed`
+     - Chrome Android renders it inconsistently / blurry
+   A pseudo-element with position:fixed works on every browser.        */
 body {
   background-color: var(--bg-canvas);
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--bg-canvas);
   background-image: var(--grad-bg, none);
-  background-attachment: fixed;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body::before {
+    background-image: none;
+  }
 }
 
 ::selection {
