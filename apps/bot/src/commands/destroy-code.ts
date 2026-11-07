@@ -15,8 +15,8 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
       .setName('code')
       .setDescription('The full code to destroy (e.g. ADVT-XXXX-XXXX-XXXX).')
       .setRequired(true)
-      .setMinLength(20)
-      .setMaxLength(32),
+      .setMinLength(19)
+      .setMaxLength(19),
   )
   .setDMPermission(false);
 
