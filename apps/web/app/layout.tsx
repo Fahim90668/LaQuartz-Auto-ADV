@@ -11,11 +11,6 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/**
- * Runs in <head> before any React code. Reads the persisted appearance
- * from localStorage and sets the data attributes on <html> so there is
- * no flash of the wrong theme.
- */
 const themeInitScript = `
 (function(){
   try {
@@ -50,4 +45,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-}
+          }
