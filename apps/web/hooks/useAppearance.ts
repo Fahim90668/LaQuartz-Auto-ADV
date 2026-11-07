@@ -40,8 +40,6 @@ export const useAppearance = create<State>()(
     }),
     {
       name: 'laquartz.appearance.v1',
-      // Only persist the three visual keys — dialogOpen is transient
-      // so it never causes hydration mismatch.
       partialize: (state) => ({
         mode: state.mode,
         theme: state.theme,
