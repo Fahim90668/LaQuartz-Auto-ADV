@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
 import { Providers } from '@/components/layout/Providers';
+import { ThemeSync } from '@/components/appearance/ThemeSync';
+import { AppearanceDialog } from '@/components/appearance/AppearanceDialog';
 import '@/styles/globals.css';
+import '@/styles/appearance.css';
 
 export const metadata: Metadata = {
   title: 'LaQuartz AUTO-ADV',
@@ -8,11 +11,42 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/**
+ * Runs in <head> before any React code. Reads the persisted appearance
+ * from localStorage and sets the data attributes on <html> so there is
+ * no flash of the wrong theme.
+ */
+const themeInitScript = `
+(function(){
+  try {
+    var s = localStorage.getItem('laquartz.appearance.v1');
+    var p = s ? (JSON.parse(s).state || {}) : {};
+    var root = document.documentElement;
+    root.setAttribute('data-mode', p.mode || 'obsidian');
+    root.setAttribute('data-theme', p.theme || 'aurora');
+    root.setAttribute('data-accent', p.accent || 'brand');
+  } catch (e) {}
+})();
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      data-mode="obsidian"
+      data-theme="aurora"
+      data-accent="brand"
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body>
-        <Providers>{children}</Providers>
+        <Providers>
+          <ThemeSync />
+          {children}
+          <AppearanceDialog />
+        </Providers>
       </body>
     </html>
   );
