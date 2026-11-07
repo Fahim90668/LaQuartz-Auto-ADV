@@ -20,6 +20,16 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── IMPORTANT: re-apply body background AFTER Tailwind base ────────
+   Tailwind's preflight sets `background: transparent` on body, which
+   can override the `background: var(--bg-canvas)` above in the cascade.
+   This explicit re-application ensures the theme background always wins. */
+body {
+  background-color: var(--bg-canvas);
+  background-image: var(--grad-bg, none);
+  background-attachment: fixed;
+}
+
 ::selection {
   background: var(--brand-neon);
   color: var(--bg-canvas);
@@ -61,7 +71,6 @@ select {
   font: inherit;
 }
 
-/* ── Keyframes ─────────────────────────────────────────── */
 @keyframes skeleton-shimmer {
   0% { background-position: -400px 0; }
   100% { background-position: 400px 0; }
@@ -95,7 +104,6 @@ select {
   to { transform: translateX(-100%); }
 }
 
-/* ── Animation utilities ──────────────────────────────── */
 .animate-skeleton {
   background: linear-gradient(
     90deg,
@@ -106,17 +114,10 @@ select {
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.2s linear infinite;
 }
-.animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-.animate-toast-in {
-  animation: toast-in 200ms ease-out;
-}
-.animate-modal-in {
-  animation: modal-in 200ms ease-out;
-}
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
+.animate-toast-in { animation: toast-in 200ms ease-out; }
+.animate-modal-in { animation: modal-in 200ms ease-out; }
 
-/* ── Reduced motion ───────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -134,4 +135,4 @@ select {
   [data-state='closed'] {
     animation: none !important;
   }
-        }
+  }
