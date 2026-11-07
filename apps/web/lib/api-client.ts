@@ -38,14 +38,22 @@ export async function apiFetch<T = unknown>(
 ): Promise<T> {
   const token = await getAccessToken();
   const url = path.startsWith('http') ? path : `${API_BASE}${path}`;
+  const hasBody = options.body !== undefined;
+
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  // Only set Content-Type when there is actually a body. Fastify's default
+  // JSON parser rejects an empty body if Content-Type is application/json.
+  if (hasBody) {
+    headers['Content-Type'] = 'application/json';
+  }
 
   const res = await fetch(url, {
     method: options.method ?? 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+    headers,
+    body: hasBody ? JSON.stringify(options.body) : undefined,
     signal: options.signal,
     cache: 'no-store',
   });
@@ -56,7 +64,9 @@ export async function apiFetch<T = unknown>(
   const payload = isJson ? await res.json() : null;
 
   if (!res.ok) {
-    const err = (payload as { error?: { code?: string; message?: string; details?: unknown; requestId?: string } })?.error;
+    const err = (payload as {
+      error?: { code?: string; message?: string; details?: unknown; requestId?: string };
+    })?.error;
     throw new ApiError(
       err?.code ?? 'API_ERROR',
       err?.message ?? `Request failed with status ${res.status}.`,
@@ -94,7 +104,9 @@ export const api = {
     apiFetch<import('@app/shared').DiscordAccountDTO>('/accounts', { method: 'POST', body }),
 
   validateAccount: (id: string) =>
-    apiFetch<import('@app/shared').DiscordAccountDTO>(`/accounts/${id}/validate`, { method: 'POST' }),
+    apiFetch<import('@app/shared').DiscordAccountDTO>(`/accounts/${id}/validate`, {
+      method: 'POST',
+    }),
 
   removeAccount: (id: string) =>
     apiFetch<void>(`/accounts/${id}`, { method: 'DELETE' }),
