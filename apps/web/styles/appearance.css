@@ -1,7 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════
    APPEARANCE SYSTEM
-   Uses html[data-*] instead of bare [data-*] so specificity (0,1,1)
-   beats :root's (0,1,0) regardless of Next.js CSS bundling order.
+   Uses html[data-*] for specificity (0,1,1) above :root (0,1,0).
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ─── Base modes ─────────────────────────────────────────────────────── */
@@ -98,20 +97,6 @@ html[data-accent='cyan']   { --accent: #22D3EE; }
 html[data-accent='amber']  { --accent: #F59E0B; }
 html[data-accent='pink']   { --accent: #F472B6; }
 html[data-accent='blue']   { --accent: #3B82F6; }
-
-/* ─── Gradient on body ───────────────────────────────────────────────── */
-/* NOTE: uses background-image only, NOT the `background` shorthand,
-   so it can't accidentally reset background-color set by globals.css */
-
-body {
-  background-color: var(--bg-canvas);
-  background-image: var(--grad-bg, none);
-  background-attachment: fixed;
-}
-
-@media (prefers-reduced-transparency: reduce) {
-  body { background-image: none; }
-}
 
 /* ─── Utility classes ────────────────────────────────────────────────── */
 
