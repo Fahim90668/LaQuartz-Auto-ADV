@@ -78,7 +78,7 @@ export async function getPlaygroundById(
 ): Promise<PlaygroundDTO | null> {
   const db = getServiceClient();
 
-  const [pgRes, channelsRes, messagesRes, accountRes] = await Promise.all([
+  const [pgRes, channelsRes, messagesRes] = await Promise.all([
     db.from('playgrounds').select('*').eq('id', playgroundId).eq('user_id', userId).maybeSingle(),
     db
       .from('playground_channels')
@@ -90,24 +90,26 @@ export async function getPlaygroundById(
       .select('*')
       .eq('playground_id', playgroundId)
       .order('position', { ascending: true }),
-    db
-      .from('playgrounds')
-      .select('account_id, discord_accounts(label, username)')
-      .eq('id', playgroundId)
-      .maybeSingle(),
   ]);
 
   if (pgRes.error) throw pgRes.error;
   if (channelsRes.error) throw channelsRes.error;
   if (messagesRes.error) throw messagesRes.error;
-  if (accountRes.error) throw accountRes.error;
 
   const pg = pgRes.data;
   if (!pg) return null;
 
-  const acc = (accountRes.data as unknown as {
-    discord_accounts: { label: string; username: string | null } | null;
-  } | null)?.discord_accounts;
+  // Fetch account via a separate single-column query — avoids PostgREST
+  // composite-FK embedding which is unreliable (PGRST200).
+  const accRes = await db
+    .from('discord_accounts')
+    .select('id, label, username')
+    .eq('id', pg.account_id)
+    .maybeSingle();
+
+  if (accRes.error) throw accRes.error;
+
+  const acc = accRes.data;
 
   return {
     id: pg.id,
@@ -115,7 +117,7 @@ export async function getPlaygroundById(
     mode: pg.mode,
     status: pg.status,
     intervalSeconds: pg.interval_seconds,
-    account: acc ? { id: pg.account_id, label: acc.label, username: acc.username } : null,
+    account: acc ? { id: acc.id, label: acc.label, username: acc.username } : null,
     channels: (channelsRes.data ?? []).map(toChannelDTO),
     messages: (messagesRes.data ?? []).map(toMessageDTO),
     lastSentAt: pg.last_sent_at,
@@ -341,4 +343,4 @@ export async function setChannelSlowmode(
     .update({ slowmode_seconds: slowmodeSeconds })
     .eq('id', playgroundChannelId);
   if (error) throw error;
-}
+    }
