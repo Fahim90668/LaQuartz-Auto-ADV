@@ -1,50 +1,81 @@
 :root {
-  /* Surfaces */
+  /* ── φ scale ──────────────────────────────────────────── */
+  /* Every type step is derived from φ = 1.618                   */
+  /*   13 × φ ≈ 21   ·  21 × φ ≈ 34  ·  34 × φ ≈ 55              */
+  --ratio: 1.618;
+
+  /* ── Surfaces ─────────────────────────────────────────── */
   --bg-canvas: #0a0710;
   --bg-surface: #120d1a;
   --bg-surface-2: #1a1425;
   --bg-surface-3: #241b33;
 
-  /* Borders */
+  /* ── Borders ──────────────────────────────────────────── */
   --border-subtle: #2a2138;
   --border-strong: #3d2e52;
   --border-glow: #bf00ff33;
 
-  /* Text */
+  /* ── Text ─────────────────────────────────────────────── */
   --text-primary: #f4eeff;
   --text-secondary: #b8aec9;
   --text-tertiary: #7a6e8c;
   --text-disabled: #4d4259;
 
-  /* Brand */
+  /* ── Brand ────────────────────────────────────────────── */
   --brand-primary: #a020f0;
   --brand-neon: #bf00ff;
   --brand-pink: #e85bff;
 
-  /* Semantic */
+  /* ── Semantic ─────────────────────────────────────────── */
   --success: #3ddc97;
   --warning: #ffb454;
   --danger: #ff5c7a;
   --info: #5bb8ff;
 
-  /* Gradients */
+  /* ── Gradients ────────────────────────────────────────── */
   --grad-brand: linear-gradient(135deg, #a020f0 0%, #e85bff 100%);
   --grad-surface: linear-gradient(180deg, #120d1a 0%, #0a0710 100%);
   --grad-glow: radial-gradient(400px at 50% 0%, #a020f033, transparent 70%);
 
-  /* Radii */
+  /* ── Radii ────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-full: 9999px;
 
-  /* Shadows */
+  /* ── Shadows ──────────────────────────────────────────── */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
   --shadow-glow: 0 0 24px rgba(160, 32, 240, 0.25);
 
-  /* Spacing scale (8pt) */
+  /* ── Type scale (φ-derived, fluid via clamp) ──────────── */
+  /* Body baseline: 15–16px. Each step up multiplies by ~φ.  */
+  --step--2: clamp(0.6875rem, 0.66rem + 0.10vw, 0.75rem);    /* 11–12px · badges/meta      */
+  --step--1: clamp(0.8125rem, 0.78rem + 0.10vw, 0.875rem);   /* 13–14px · table cells      */
+  --step-0:  clamp(0.9375rem, 0.90rem + 0.20vw, 1rem);       /* 15–16px · body             */
+  --step-1:  clamp(1.25rem,  1.15rem + 0.55vw, 1.375rem);    /* 20–22px · card title       */
+  --step-2:  clamp(1.5rem,   1.35rem + 0.90vw, 1.75rem);     /* 24–28px · section heading  */
+  --step-3:  clamp(1.75rem,  1.50rem + 1.30vw, 2.25rem);     /* 28–36px · page title       */
+  --step-4:  clamp(2.25rem,  1.85rem + 2.00vw, 3rem);        /* 36–48px · hero             */
+
+  /* ── Line heights ─────────────────────────────────────── */
+  --lh-tight: 1.15;    /* h1  */
+  --lh-snug:  1.272;   /* h2–h4 */
+  --lh-body:  1.5;
+  --lh-meta:  1.4;
+
+  /* ── Spacing scale (φ-derived where breathing matters) ── */
+  /* Original Tailwind 4/8/12/16/20/24/32/40/48/64 stays    */
+  /* available. These phi-* tokens are additive:            */
+  --space-phi-1: 0.5rem;     /*  8  */
+  --space-phi-2: 0.8125rem;  /* 13  ≈ 8 × φ  */
+  --space-phi-3: 1.3125rem;  /* 21  ≈ 13 × φ */
+  --space-phi-4: 2.125rem;   /* 34  ≈ 21 × φ */
+  --space-phi-5: 3.4375rem;  /* 55  ≈ 34 × φ */
+  --space-phi-6: 5.5625rem;  /* 89  ≈ 55 × φ */
+
+  /* Legacy 8pt scale kept for compatibility */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -56,12 +87,12 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Layout */
+  /* ── Layout ───────────────────────────────────────────── */
   --sidebar-width: 240px;
   --sidebar-width-collapsed: 64px;
   --topbar-height: 64px;
   --statusbar-height: 32px;
-  --content-max-width: 1200px;
+  --content-max-width: 1080px;
 }
 
 @font-face {
@@ -69,4 +100,4 @@
   src: url('https://rsms.me/inter/font-files/InterVariable.woff2') format('woff2-variations');
   font-weight: 100 900;
   font-display: swap;
-}
+  }
