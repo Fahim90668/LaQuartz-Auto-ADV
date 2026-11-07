@@ -17,6 +17,32 @@ export interface StoredTokenBundle extends EncryptedTokenBundle {
   status: 'active' | 'invalid' | 'checking' | 'removed';
 }
 
+/**
+ * PostgREST serialises `bytea` as a `\x`-prefixed hex string on read.
+ * Some supabase-js versions return a Uint8Array instead. Handle both.
+ *
+ * NEVER treat the returned string as base64 — it is hex, prefixed with \x.
+ */
+function parseBytea(value: unknown): Buffer {
+  if (value instanceof Uint8Array) return Buffer.from(value);
+  if (typeof value === 'string') {
+    if (value.startsWith('\\x')) return Buffer.from(value.slice(2), 'hex');
+    // Legacy escape format: each character is one byte
+    return Buffer.from(value, 'binary');
+  }
+  if (value instanceof ArrayBuffer) return Buffer.from(new Uint8Array(value));
+  throw new Error('Unexpected bytea representation: ' + typeof value);
+}
+
+/**
+ * PostgREST expects bytea inserts as `\x`-prefixed hex strings (or Uint8Array).
+ * Sending a plain base64 string stores its ASCII bytes instead of the binary,
+ * corrupting the ciphertext.
+ */
+function encodeBytea(bytes: Uint8Array): string {
+  return '\\x' + Buffer.from(bytes).toString('hex');
+}
+
 export function toAccountDTO(row: AccountRow): DiscordAccountDTO {
   return {
     id: row.id,
@@ -55,9 +81,9 @@ export async function insertAccount(input: CreateAccountInput): Promise<DiscordA
       username: input.username,
       global_name: input.globalName,
       avatar_url: input.avatarUrl,
-      token_ciphertext: Buffer.from(input.token.ciphertext).toString('base64'),
-      token_iv: Buffer.from(input.token.iv).toString('base64'),
-      token_tag: Buffer.from(input.token.tag).toString('base64'),
+      token_ciphertext: encodeBytea(input.token.ciphertext),
+      token_iv: encodeBytea(input.token.iv),
+      token_tag: encodeBytea(input.token.tag),
       key_version: input.token.keyVersion,
       token_fingerprint: input.fingerprint,
       status: 'active',
@@ -113,9 +139,9 @@ export async function getAccountTokenBundle(
   return {
     id: data.id,
     userId: data.user_id,
-    ciphertext: Buffer.from(data.token_ciphertext, 'base64'),
-    iv: Buffer.from(data.token_iv, 'base64'),
-    tag: Buffer.from(data.token_tag, 'base64'),
+    ciphertext: parseBytea(data.token_ciphertext),
+    iv: parseBytea(data.token_iv),
+    tag: parseBytea(data.token_tag),
     keyVersion: data.key_version,
     status: data.status,
   };
