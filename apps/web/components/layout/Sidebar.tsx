@@ -40,7 +40,7 @@ function SidebarInner({
             <Zap className="h-4 w-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-text-primary">Auto Advertiser</p>
+            <p className="text-sm font-semibold text-text-primary">LaQuartz AUTO-ADV</p>
             <p className="text-[10px] uppercase tracking-wider text-text-tertiary">Panel</p>
           </div>
         </div>

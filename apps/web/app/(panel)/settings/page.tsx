@@ -13,7 +13,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-h2 font-semibold text-text-primary">Settings</h2>
+        <h2 className="text-step-3 font-semibold text-text-primary">Settings</h2>
         <p className="mt-1 text-sm text-text-secondary">Account and access information.</p>
       </div>
 

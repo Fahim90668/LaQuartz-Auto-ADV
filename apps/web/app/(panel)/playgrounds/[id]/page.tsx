@@ -43,7 +43,7 @@ export default function PlaygroundDetailPage({ params }: { params: Promise<{ id:
           >
             <ChevronLeft className="h-3 w-3" /> All playgrounds
           </Link>
-          <h2 className="mt-2 text-h2 font-semibold text-text-primary">{data.name}</h2>
+          <h2 className="mt-2 text-step-3 font-semibold text-text-primary">{data.name}</h2>
           <p className="mt-1 flex items-center gap-2 text-sm text-text-secondary">
             {data.account?.label} · {data.mode}
             <Badge tone={data.status === 'running' ? 'success' : data.status === 'error' ? 'danger' : 'neutral'}>

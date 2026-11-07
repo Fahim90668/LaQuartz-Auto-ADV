@@ -21,7 +21,7 @@ export function PlaygroundCard({ playground }: { playground: PlaygroundOverviewD
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
-          <h3 className="text-h3 font-semibold text-text-primary group-hover:text-brand-pink">
+          <h3 className="text-step-2 font-semibold text-text-primary group-hover:text-brand-pink">
             {playground.name}
           </h3>
           <p className="mt-1 text-xs text-text-tertiary">

@@ -48,7 +48,7 @@ export default function OverviewPage() {
       <Card>
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-h3 font-semibold text-text-primary">Playgrounds</h2>
+            <h2 className="text-step-2 font-semibold text-text-primary">Playgrounds</h2>
             <p className="text-sm text-text-secondary">
               {running} running · {playgrounds?.length ?? 0} total
             </p>

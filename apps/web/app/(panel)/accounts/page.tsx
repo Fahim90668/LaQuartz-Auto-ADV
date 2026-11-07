@@ -18,7 +18,7 @@ export default function AccountsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-h2 font-semibold text-text-primary">Discord Accounts</h2>
+          <h2 className="text-step-3 font-semibold text-text-primary">Discord Accounts</h2>
           <p className="mt-1 text-sm text-text-secondary">
             Tokens are validated and encrypted at rest. They are never exposed to the browser.
           </p>

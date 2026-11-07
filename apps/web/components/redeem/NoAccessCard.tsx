@@ -10,7 +10,7 @@ export function NoAccessCard() {
         <ShoppingBag className="h-7 w-7 text-brand-pink" />
       </div>
       <div>
-        <h2 className="text-h2 font-semibold text-text-primary">Buy a code from our Discord server</h2>
+        <h2 className="text-step-3 font-semibold text-text-primary">Buy a code from our Discord server</h2>
         <p className="mt-2 text-sm text-text-secondary">
           You need a valid code to access the panel. Join our Discord server, purchase a code, then
           come back here to redeem it.

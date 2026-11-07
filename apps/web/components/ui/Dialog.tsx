@@ -42,7 +42,7 @@ export function Dialog({
         >
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
-              <DialogPrimitive.Title className="text-h3 font-semibold text-text-primary">
+              <DialogPrimitive.Title className="text-step-2 font-semibold text-text-primary">
                 {title}
               </DialogPrimitive.Title>
               {description && (
