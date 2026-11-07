@@ -18,9 +18,11 @@ export function CardHeader({ className, ...rest }: HTMLAttributes<HTMLDivElement
 }
 
 export function CardTitle({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
-  return <h3 className={cn('text-h3 font-semibold text-text-primary', className)} {...rest} />;
+  return (
+    <h3 className={cn('text-step-1 font-semibold text-text-primary', className)} {...rest} />
+  );
 }
 
 export function CardDescription({ className, ...rest }: HTMLAttributes<HTMLParagraphElement>) {
   return <p className={cn('mt-1 text-sm text-text-secondary', className)} {...rest} />;
-}
+  }
