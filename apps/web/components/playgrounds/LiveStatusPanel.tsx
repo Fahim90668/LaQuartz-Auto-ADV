@@ -11,7 +11,11 @@ export function LiveStatusPanel({ playground }: { playground: PlaygroundDTO }) {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat label="Status" value={playground.status} pulse={playground.status === 'running'} />
         <Stat label="Total sent" value={String(playground.totalSent)} />
-        <Stat label="Total failed" value={String(playground.totalFailed)} tone={playground.totalFailed > 0 ? 'danger' : undefined} />
+        <Stat
+          label="Total failed"
+          value={String(playground.totalFailed)}
+          tone={playground.totalFailed > 0 ? 'danger' : undefined}
+        />
         <Stat label="Last sent" value={formatRelative(playground.lastSentAt)} />
       </div>
       {playground.nextRunAt && (
@@ -48,9 +52,9 @@ function Stat({
           tone === 'danger' ? 'text-danger' : 'text-text-primary',
         )}
       >
-        {pulse && <span className="h-2 w-2 rounded-full bg-success animate-pulse-dot" />}
+        {pulse && <span className="accent-pulse h-2 w-2 rounded-full" />}
         {value}
       </p>
     </div>
   );
-}
+        }
