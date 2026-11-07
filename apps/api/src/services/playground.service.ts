@@ -2,21 +2,19 @@ import type {
   CreatePlaygroundInput,
   PlaygroundChannelDTO,
   PlaygroundDTO,
-  PlaygroundOverviewDTO,
   PlaygroundMessageDTO,
+  PlaygroundOverviewDTO,
   UpdatePlaygroundInput,
 } from '@app/shared';
 import {
   errors,
   MAX_CHANNELS_PER_PLAYGROUND,
   MAX_MESSAGES_PER_PLAYGROUND,
-  MAX_MESSAGES_PER_PLAYGROUND as MAX_MSG,
 } from '@app/shared';
 import {
   entitlements as entitlementsDb,
   playgrounds as playgroundsDb,
   jobs as jobsDb,
-  logs as logsDb,
 } from '@app/db';
 
 function nextRunDate(mode: 'manual' | 'slowmode', interval: number): Date {
@@ -49,8 +47,8 @@ export async function createPlayground(
   if (input.channels.length > MAX_CHANNELS_PER_PLAYGROUND) {
     throw errors.channelLimitReached(MAX_CHANNELS_PER_PLAYGROUND);
   }
-  if (input.messages.length > MAX_MSG) {
-    throw errors.messageLimitReached(MAX_MSG);
+  if (input.messages.length > MAX_MESSAGES_PER_PLAYGROUND) {
+    throw errors.messageLimitReached(MAX_MESSAGES_PER_PLAYGROUND);
   }
 
   const playgroundId = await playgroundsDb.insertPlayground({
@@ -100,9 +98,12 @@ export async function startPlayground(
 ): Promise<PlaygroundDTO> {
   const pg = await playgroundsDb.getPlaygroundById(playgroundId, userId);
   if (!pg) throw errors.playgroundNotFound();
-  if (pg.channels.filter((c) => c.isActive).length === 0) {
+
+  const activeChannels = pg.channels.filter((c) => c.isActive);
+  if (activeChannels.length === 0) {
     throw errors.noChannels();
   }
+
   if (pg.status === 'running') {
     return pg;
   }
@@ -112,34 +113,41 @@ export async function startPlayground(
   const message = pg.messages.find((m) => m.isActive) ?? pg.messages[0];
   const messageId = message?.id ?? null;
   const now = Date.now();
-  const seeds = pg.channels
-    .filter((c) => c.isActive)
-    .map((c) => {
-      const interval = pg.mode === 'slowmode' ? c.slowmodeSeconds : pg.intervalSeconds;
-      const runAt = nextRunDate(pg.mode, interval).toISOString();
-      return {
-        playgroundChannelId: c.id,
-        messageId,
-        runAt,
-        key: `${playgroundId}:${c.id}:${now}`,
-      };
-    });
 
-  if (seeds.length > 0) {
-    const rows = seeds.map((s) => ({
+  const rows = activeChannels.map((c) => {
+    const interval = pg.mode === 'slowmode' ? c.slowmodeSeconds : pg.intervalSeconds;
+    const runAt = nextRunDate(pg.mode, interval).toISOString();
+    return {
       playground_id: playgroundId,
-      playground_channel_id: s.playgroundChannelId,
-      message_id: s.messageId,
-      run_at: s.runAt,
-      idempotency_key: s.key,
+      playground_channel_id: c.id,
+      message_id: messageId,
+      run_at: runAt,
+      idempotency_key: `${playgroundId}:${c.id}:${now}`,
       status: 'pending' as const,
-    }));
+    };
+  });
 
+  if (rows.length > 0) {
     const { getServiceClient } = await import('@app/db');
     const { error } = await getServiceClient()
       .from('scheduled_jobs')
       .upsert(rows, { onConflict: 'idempotency_key', ignoreDuplicates: true });
-    if (error) throw error;
+
+    if (error) {
+      console.error('[startPlayground] scheduled_jobs upsert failed', {
+        playgroundId,
+        rowCount: rows.length,
+        error: {
+          message: error.message,
+          code: error.code,
+          details: error.details,
+          hint: error.hint,
+        },
+      });
+      // Roll back the running state so the user can retry cleanly
+      await playgroundsDb.setPlaygroundRunning(playgroundId, userId, false);
+      throw error;
+    }
   }
 
   return getPlayground(userId, playgroundId);
@@ -151,9 +159,11 @@ export async function stopPlayground(
 ): Promise<PlaygroundDTO> {
   const pg = await playgroundsDb.getPlaygroundById(playgroundId, userId);
   if (!pg) throw errors.playgroundNotFound();
+
   if (pg.status === 'paused' || pg.status === 'idle') {
     return pg;
   }
+
   await jobsDb.cancelJobsForPlayground(playgroundId);
   await playgroundsDb.setPlaygroundRunning(playgroundId, userId, false);
   return getPlayground(userId, playgroundId);
@@ -188,6 +198,7 @@ export async function removeChannel(
 ): Promise<void> {
   const pg = await playgroundsDb.getPlaygroundById(playgroundId, userId);
   if (!pg) throw errors.playgroundNotFound();
+
   const ok = await playgroundsDb.removePlaygroundChannel(playgroundId, channelId);
   if (!ok) throw errors.notFound('Channel');
 }
@@ -199,8 +210,10 @@ export async function addMessage(
 ): Promise<PlaygroundMessageDTO> {
   const pg = await playgroundsDb.getPlaygroundById(playgroundId, userId);
   if (!pg) throw errors.playgroundNotFound();
+
   if (pg.messages.length >= MAX_MESSAGES_PER_PLAYGROUND) {
     throw errors.messageLimitReached(MAX_MESSAGES_PER_PLAYGROUND);
   }
+
   return playgroundsDb.upsertMessage(playgroundId, content);
 }
