@@ -37,20 +37,24 @@ function LoginContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas p-4">
+    <div className="app-shell flex min-h-screen items-center justify-center p-4">
       <div className="w-full max-w-md rounded-lg border border-border-subtle bg-surface p-8 shadow-lg">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg bg-[image:var(--grad-brand)] shadow-glow">
             <Zap className="h-7 w-7 text-white" />
           </div>
-          <h1 className="text-step-4 font-semibold text-text-primary">LaQuartz AUTO-ADV</h1>
+          <h1 className="text-step-3 font-semibold text-text-primary">LaQuartz AUTO-ADV</h1>
           <p className="mt-2 text-sm text-text-secondary">
             License-gated Discord advertising automation.
           </p>
         </div>
 
         {error && (
-          <div className="mb-4 flex items-start gap-2 rounded-md border border-danger/40 bg-danger/10 p-3 text-xs text-danger">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="mb-4 flex items-start gap-2 rounded-md border border-danger/40 bg-danger/10 p-3 text-xs text-danger"
+          >
             <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0" />
             <span>{error}</span>
           </div>
@@ -75,4 +79,4 @@ export default function LoginPage() {
       <LoginContent />
     </Suspense>
   );
-}
+    }
