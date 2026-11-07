@@ -37,10 +37,34 @@ const config: Config = {
         danger: 'var(--danger)',
         info: 'var(--info)',
       },
+
+      /* ── Typography ───────────────────────────────────────────── */
       fontFamily: {
         sans: ['InterVariable', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
+      fontSize: {
+        /* φ-derived scale */
+        'step--2': ['var(--step--2)', { lineHeight: 'var(--lh-meta)' }],
+        'step--1': ['var(--step--1)', { lineHeight: 'var(--lh-meta)' }],
+        'step-0':  ['var(--step-0)',  { lineHeight: 'var(--lh-body)' }],
+        'step-1':  ['var(--step-1)',  { lineHeight: 'var(--lh-snug)' }],
+        'step-2':  ['var(--step-2)',  { lineHeight: 'var(--lh-snug)' }],
+        'step-3':  ['var(--step-3)',  { lineHeight: 'var(--lh-snug)' }],
+        'step-4':  ['var(--step-4)',  { lineHeight: 'var(--lh-tight)' }],
+      },
+
+      /* ── Spacing (φ-derived additive layer) ───────────────────── */
+      spacing: {
+        'phi-1': 'var(--space-phi-1)',
+        'phi-2': 'var(--space-phi-2)',
+        'phi-3': 'var(--space-phi-3)',
+        'phi-4': 'var(--space-phi-4)',
+        'phi-5': 'var(--space-phi-5)',
+        'phi-6': 'var(--space-phi-6)',
+      },
+
+      /* ── Radii ────────────────────────────────────────────────── */
       borderRadius: {
         sm: 'var(--radius-sm)',
         md: 'var(--radius-md)',
