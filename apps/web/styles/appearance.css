@@ -1,6 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════
    APPEARANCE SYSTEM
-   Uses html[data-*] for specificity (0,1,1) above :root (0,1,0).
+   Base mode  → surfaces, text, borders
+   Theme      → background gradient + --break
+   Accent     → --accent / --accent-fg / --accent-dark
+                Everything brand-related DERIVES from these via tokens.css.
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ─── Base modes ─────────────────────────────────────────────────────── */
@@ -90,21 +93,42 @@ html[data-theme='porcelain'] {
   --border-strong: #D4D4DC;
 }
 
-/* ─── Accent ──────────────────────────────────────────────────────────── */
+/* ─── Accents ────────────────────────────────────────────────────────── */
+/* Only three vars per accent. Everything else is derived in tokens.css. */
 
-html[data-accent='brand']  { --accent: #E85BFF; }
-html[data-accent='cyan']   { --accent: #22D3EE; }
-html[data-accent='amber']  { --accent: #F59E0B; }
-html[data-accent='pink']   { --accent: #F472B6; }
-html[data-accent='blue']   { --accent: #3B82F6; }
+html[data-accent='brand'] {
+  --accent: #A020F0;
+  --accent-fg: #FFFFFF;
+  --accent-dark: #7C1AC7;
+}
+html[data-accent='cyan'] {
+  --accent: #22D3EE;
+  --accent-fg: #0A0710;
+  --accent-dark: #0891B2;
+}
+html[data-accent='amber'] {
+  --accent: #F59E0B;
+  --accent-fg: #0A0710;
+  --accent-dark: #B45309;
+}
+html[data-accent='pink'] {
+  --accent: #F472B6;
+  --accent-fg: #0A0710;
+  --accent-dark: #BE185D;
+}
+html[data-accent='blue'] {
+  --accent: #3B82F6;
+  --accent-fg: #FFFFFF;
+  --accent-dark: #1D4ED8;
+}
 
-/* ─── Utility classes ────────────────────────────────────────────────── */
+/* ─── Utilities ──────────────────────────────────────────────────────── */
 
 .app-shell { background-color: transparent; }
-.accent-dot { background-color: var(--accent, var(--brand-neon)); }
+.accent-dot { background-color: var(--accent); }
 .accent-pulse {
-  background-color: var(--accent, var(--success));
+  background-color: var(--accent);
   animation: pulse-dot 2s ease-in-out infinite;
 }
-.accent-color { color: var(--accent, var(--brand-pink)); }
+.accent-color { color: var(--accent); }
 .break-color { color: var(--break); }
