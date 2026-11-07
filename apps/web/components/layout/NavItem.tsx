@@ -33,7 +33,7 @@ export function NavItem({ href, label, icon: Icon, active, onClick }: NavItemPro
         )}
       />
       <span className="truncate font-medium">{label}</span>
-      {active && <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-brand-neon" />}
+      {active && <span className="accent-dot ml-auto h-1.5 w-1.5 shrink-0 rounded-full" />}
     </Link>
   );
-}
+        }
