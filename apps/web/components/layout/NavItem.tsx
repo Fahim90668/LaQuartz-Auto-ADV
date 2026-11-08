@@ -22,18 +22,24 @@ export function NavItem({ href, label, icon: Icon, active, onClick }: NavItemPro
         'group flex min-h-[44px] items-center gap-3 rounded-md px-3 py-2.5 text-sm transition-colors',
         'lg:min-h-0 lg:py-2',
         active
-          ? 'bg-brand-primary/10 text-text-primary'
+          ? 'bg-[color:var(--primary)]/10 text-text-primary'
           : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary',
       )}
     >
       <Icon
         className={cn(
           'h-4 w-4 shrink-0 transition-colors',
-          active ? 'text-brand-pink' : 'text-text-tertiary group-hover:text-text-secondary',
+          active ? 'text-[color:var(--highlight)]' : 'text-text-tertiary group-hover:text-text-secondary',
         )}
       />
       <span className="truncate font-medium">{label}</span>
-      {active && <span className="accent-dot ml-auto h-1.5 w-1.5 shrink-0 rounded-full" />}
+      {active && (
+        <span
+          className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full"
+          style={{ backgroundColor: 'var(--break)' }}
+          aria-hidden
+        />
+      )}
     </Link>
   );
-        }
+            }
