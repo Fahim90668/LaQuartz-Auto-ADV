@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Space_Grotesk } from 'next/font/google';
 import { Providers } from '@/components/layout/Providers';
 import { ThemeSync } from '@/components/appearance/ThemeSync';
 import { AppearanceDialog } from '@/components/appearance/AppearanceDialog';
@@ -10,6 +11,13 @@ export const metadata: Metadata = {
   description: 'License-gated Discord advertising automation.',
   robots: { index: false, follow: false },
 };
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['500', '600', '700'],
+  variable: '--font-display',
+  display: 'swap',
+});
 
 const themeInitScript = `
 (function(){
@@ -28,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
+      className={spaceGrotesk.variable}
       data-mode="obsidian"
       data-theme="aurora"
       data-accent="brand"
@@ -45,4 +54,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
-          }
+}
