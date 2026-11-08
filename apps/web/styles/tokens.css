@@ -1,61 +1,60 @@
 :root {
-  /* ── φ scale ──────────────────────────────────────────── */
   --ratio: 1.618;
 
-  /* ── Surfaces ─────────────────────────────────────────── */
+  /* Surfaces */
   --bg-canvas: #0a0710;
   --bg-surface: #120d1a;
   --bg-surface-2: #1a1425;
   --bg-surface-3: #241b33;
 
-  /* ── Borders ──────────────────────────────────────────── */
+  /* Borders */
   --border-subtle: #2a2138;
   --border-strong: #3d2e52;
   --border-glow: #bf00ff33;
 
-  /* ── Text ─────────────────────────────────────────────── */
+  /* Text */
   --text-primary: #f4eeff;
   --text-secondary: #b8aec9;
   --text-tertiary: #7a6e8c;
   --text-disabled: #4d4259;
 
-  /* ── ACCENT — SINGLE SOURCE OF TRUTH ──────────────────── */
-  /* Everything brand-colored DERIVES from these two vars.   */
-  /* `appearance.css` only needs to override --accent +      */
-  /* --accent-fg per data-accent attribute.                  */
-  --accent: #a020f0;
-  --accent-fg: #ffffff;
-  --accent-dark: #7c1ac7; /* darker shade for gradient start */
+  /* Theme fallbacks — overridden by appearance.css */
+  --primary: #a020f0;
+  --neon: #bf00ff;
+  --highlight: #e85bff;
+  --break: #22d3ee;
+  --header: #e85bff;
+  --primary-fg: #ffffff;
 
-  /* ── Brand — DERIVED from --accent ────────────────────── */
-  --brand-primary: var(--accent);
-  --brand-pink: var(--accent);
-  --brand-neon: var(--accent);
-  --grad-brand: linear-gradient(135deg, var(--accent-dark) 0%, var(--accent) 100%);
+  /* Brand aliases — resolve to theme values */
+  --brand-primary: var(--primary);
+  --brand-neon: var(--neon);
+  --brand-pink: var(--highlight);
+  --accent: var(--primary);
+  --accent-fg: var(--primary-fg);
+  --grad-brand: linear-gradient(135deg, var(--primary) 0%, var(--highlight) 100%);
+  --grad-surface: linear-gradient(180deg, #120d1a 0%, #0a0710 100%);
+  --grad-glow: radial-gradient(400px at 50% 0%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 70%);
 
-  /* ── Semantic ─────────────────────────────────────────── */
+  /* Semantic */
   --success: #3ddc97;
   --warning: #ffb454;
   --danger: #ff5c7a;
   --info: #5bb8ff;
 
-  /* ── Gradients ────────────────────────────────────────── */
-  --grad-surface: linear-gradient(180deg, #120d1a 0%, #0a0710 100%);
-  --grad-glow: radial-gradient(400px at 50% 0%, #a020f033, transparent 70%);
-
-  /* ── Radii ────────────────────────────────────────────── */
+  /* Radii */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-full: 9999px;
 
-  /* ── Shadows ──────────────────────────────────────────── */
+  /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
-  --shadow-glow: 0 0 24px rgba(160, 32, 240, 0.25);
+  --shadow-glow: 0 0 24px color-mix(in srgb, var(--primary) 40%, transparent);
 
-  /* ── Type scale ───────────────────────────────────────── */
+  /* φ type scale */
   --step--2: clamp(0.6875rem, 0.66rem + 0.10vw, 0.75rem);
   --step--1: clamp(0.8125rem, 0.78rem + 0.10vw, 0.875rem);
   --step-0:  clamp(0.9375rem, 0.90rem + 0.20vw, 1rem);
@@ -69,20 +68,19 @@
   --lh-body:  1.5;
   --lh-meta:  1.4;
 
-  /* ── Spacing ──────────────────────────────────────────── */
+  /* Spacing */
   --space-phi-1: 0.5rem;
   --space-phi-2: 0.8125rem;
   --space-phi-3: 1.3125rem;
   --space-phi-4: 2.125rem;
-  --space-phi-5: 3.4375rem;
-  --space-phi-6: 5.5625rem;
 
-  /* ── Layout ───────────────────────────────────────────── */
+  /* Layout — narrow, left-anchored */
   --sidebar-width: 240px;
   --sidebar-width-collapsed: 64px;
   --topbar-height: 64px;
   --statusbar-height: 32px;
-  --content-max-width: 1080px;
+  --content-max-width: 900px;
+  --content-gutter: clamp(1.25rem, 3vw, 2.5rem);
 }
 
 @font-face {
@@ -90,4 +88,4 @@
   src: url('https://rsms.me/inter/font-files/InterVariable.woff2') format('woff2-variations');
   font-weight: 100 900;
   font-display: swap;
-                               }
+                   }
