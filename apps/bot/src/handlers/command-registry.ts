@@ -3,13 +3,20 @@ import * as createCode from '../commands/create-code.js';
 import * as destroyCode from '../commands/destroy-code.js';
 import * as codeInfo from '../commands/code-info.js';
 import * as stats from '../commands/stats.js';
+import * as postUpdate from '../commands/post-update.js';
 
 export interface CommandHandler {
   data: SlashCommandOptionsOnlyBuilder;
   execute: (interaction: import('discord.js').ChatInputCommandInteraction) => Promise<void>;
 }
 
-const handlers: CommandHandler[] = [createCode, destroyCode, codeInfo, stats];
+const handlers: CommandHandler[] = [
+  createCode,
+  destroyCode,
+  codeInfo,
+  stats,
+  postUpdate,
+];
 
 export function getCommands(): SlashCommandOptionsOnlyBuilder[] {
   return handlers.map((h) => h.data);
@@ -21,4 +28,4 @@ export function getHandler(name: string): CommandHandler | null {
 
 export function listCommandNames(): string[] {
   return handlers.map((h) => h.data.name);
-}
+  }
