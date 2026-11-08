@@ -9,7 +9,7 @@ const createSchema = z
   .object({
     accountId: z.string().regex(UUID_PATTERN, 'Invalid account ID'),
     serviceType: z.enum(['onliner', 'vc', 'typer']),
-    durationSeconds: z.number().int().min(60).max(2_592_000), // 1 min – 30 days
+    durationSeconds: z.number().int().min(60).max(2_592_000),
     config: z.record(z.unknown()).default({}),
   })
   .strict();
@@ -17,11 +17,13 @@ const createSchema = z
 const idParam = z.object({ id: z.string().regex(UUID_PATTERN) });
 
 const continuousRoutes: FastifyPluginAsync = async (app) => {
+  // ─── LIST ──────────────────────────────────────────────────────────
   app.get('/continuous', async (req, reply) => {
     const items = await continuousDb.listServicesForUser(req.user!.id);
     return reply.code(200).send({ items });
   });
 
+  // ─── CREATE ────────────────────────────────────────────────────────
   app.post(
     '/continuous',
     rateLimitConfig(10, '1 minute'),
@@ -50,26 +52,20 @@ const continuousRoutes: FastifyPluginAsync = async (app) => {
           status: 'pending',
         });
       } catch (err) {
-        // Quota / limit errors surface from the RPC with P0001 + hint
         const message = (err as { message?: string }).message ?? '';
         const hint = (err as { hint?: string }).hint ?? '';
         if (message.includes('NO_247_QUOTA')) {
-          throw new (errors.noEntitlement().constructor as new (m: string, s?: number) => Error)(
-            hint || 'Your code does not allow this 24/7 service.',
-            403,
-          );
+          throw errors.noEntitlement();
         }
         if (message.includes('SERVICE_LIMIT_REACHED')) {
-          throw new (errors.conflict('').constructor as new (m: string, s?: number) => Error)(
-            hint || 'You have reached the limit for this service type.',
-            409,
-          );
+          throw errors.conflict(hint || 'You have reached the limit for this service type.');
         }
         throw err;
       }
     },
   );
 
+  // ─── STOP ──────────────────────────────────────────────────────────
   app.delete('/continuous/:id', async (req, reply) => {
     const { id } = idParam.parse(req.params);
     const ok = await continuousDb.stopService(id, req.user!.id);
