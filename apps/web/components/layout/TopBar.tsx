@@ -3,12 +3,14 @@
 import { usePathname } from 'next/navigation';
 import { Menu } from 'lucide-react';
 import { UserMenu } from './UserMenu';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 
 const labels: Record<string, string> = {
   '/overview': 'Overview',
   '/accounts': 'Accounts',
   '/playgrounds': 'Playgrounds',
   '/redeem': 'Redeem',
+  '/docs': 'Docs',
   '/settings': 'Settings',
 };
 
@@ -35,11 +37,14 @@ export function TopBar({ onMenuClick }: TopBarProps) {
 
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-wider text-text-tertiary">Panel</p>
-          <h1 className="truncate text-step-2 font-semibold text-text-primary">{title}</h1>
+          <h1 className="truncate text-h3 font-semibold text-text-primary">{title}</h1>
         </div>
       </div>
 
-      <UserMenu />
+      <div className="flex items-center gap-1">
+        <NotificationBell />
+        <UserMenu />
+      </div>
     </header>
   );
-}
+          }
