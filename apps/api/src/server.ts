@@ -10,6 +10,7 @@ import accountRoutes from './routes/accounts.js';
 import discordRoutes from './routes/discord.js';
 import playgroundRoutes from './routes/playgrounds.js';
 import logRoutes from './routes/logs.js';
+import continuousRoutes from './routes/continuous.js';
 import type { Env } from './env.js';
 
 export async function buildServer(env: Env): Promise<FastifyInstance> {
@@ -33,16 +34,7 @@ export async function buildServer(env: Env): Promise<FastifyInstance> {
     bodyLimit: 1024 * 1024,
   });
 
-  // ── Custom JSON parser ──────────────────────────────────────────────────
-  // Fastify's default parser rejects requests that carry a
-  // `Content-Type: application/json` header but have an empty body with
-  //   FST_ERR_CTP_EMPTY_JSON_BODY (400)
-  // This breaks legitimate bodyless POSTs like /playgrounds/:id/start,
-  // /playgrounds/:id/stop, /accounts/:id/validate.
-  //
-  // This parser keeps the same behavior for real bodies and treats an
-  // empty body as `undefined` so route handlers that don't expect a body
-  // just work. Malformed JSON is still rejected with a 400.
+  // Allow POST/PATCH with Content-Type: application/json and an empty body
   app.addContentTypeParser(
     'application/json',
     { parseAs: 'string' },
@@ -74,6 +66,7 @@ export async function buildServer(env: Env): Promise<FastifyInstance> {
   await app.register(discordRoutes);
   await app.register(playgroundRoutes);
   await app.register(logRoutes);
+  await app.register(continuousRoutes);
 
   return app;
-  }
+    }
