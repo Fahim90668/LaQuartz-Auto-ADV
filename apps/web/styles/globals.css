@@ -4,9 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html,
 body {
@@ -19,7 +17,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Headings: display font + theme header color */
 h1, h2, h3, h4, h5, h6, .font-display {
   font-family: var(--font-display), 'InterVariable', 'Inter', system-ui, sans-serif;
   letter-spacing: -0.015em;
@@ -28,6 +25,10 @@ h1, h2, h3, h4, h5, h6, .font-display {
 h1, h2 { color: var(--header); }
 h3, h4 { color: var(--primary); }
 
+/* ─── Background composition ──────────────────────────────────────────
+   body = base mode canvas (solid)
+   body::before = theme tint overlaid on top (alpha gradient)
+   Result: theme tint visibly adapts to the base mode's lightness.      */
 body {
   background-color: var(--bg-canvas);
   min-height: 100vh;
@@ -35,23 +36,24 @@ body {
   isolation: isolate;
 }
 
-/* Fixed 3-stop gradient — real element, not background-attachment (iOS fix) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background-image: var(--grad-bg, none);
-  background-size: cover;
-  background-repeat: no-repeat;
+  background-image: linear-gradient(
+    180deg,
+    var(--tint-edge, transparent) 0%,
+    var(--tint-mid, transparent) 50%,
+    var(--tint-edge, transparent) 100%
+  );
   transition: background-image 320ms ease-out;
 }
 
 @media (prefers-reduced-transparency: reduce) {
   body::before { background-image: none; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   body::before { transition: none; }
 }
@@ -68,7 +70,6 @@ body::before {
   border-radius: var(--radius-full);
   border: 2px solid var(--bg-canvas);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
 *:focus-visible {
   outline: 2px solid var(--neon);
@@ -99,77 +100,43 @@ input, textarea, select { font: inherit; }
   from { opacity: 0; transform: scale(0.96); }
   to { opacity: 1; transform: scale(1); }
 }
-@keyframes fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-@keyframes fade-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-@keyframes slide-in-left {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-@keyframes slide-out-left {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-/* Home hero entrance */
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes slide-in-left { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+@keyframes slide-out-left { from { transform: translateX(0); } to { transform: translateX(-100%); } }
 @keyframes fade-up {
   from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 @keyframes pop-in {
-  0%   { opacity: 0; transform: scale(0.92) translateY(12px); }
-  60%  { opacity: 1; transform: scale(1.02) translateY(-2px); }
+  0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+  60% { opacity: 1; transform: scale(1.02) translateY(-2px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-
-/* Discord mockup — 3 messages cycle every 12s, each visible ~3.6s */
 @keyframes step-cycle {
-  0%   { opacity: 1; transform: translateY(0); }
-  30%  { opacity: 1; transform: translateY(0); }
-  33%  { opacity: 0; transform: translateY(8px); }
-  97%  { opacity: 0; transform: translateY(8px); }
+  0%, 30% { opacity: 1; transform: translateY(0); }
+  33%, 97% { opacity: 0; transform: translateY(8px); }
   100% { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes typing {
-  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-2px); }
-}
-
-/* Scroll reveal — used with IntersectionObserver or on-mount */
 @keyframes reveal-up {
   from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* ─── Animation utilities ────────────────────────────────────────────── */
-
 .animate-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--bg-surface) 0%,
-    var(--bg-surface-2) 50%,
-    var(--bg-surface) 100%
-  );
+  background: linear-gradient(90deg, var(--bg-surface) 0%, var(--bg-surface-2) 50%, var(--bg-surface) 100%);
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.2s linear infinite;
 }
 .animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
-.animate-toast-in  { animation: toast-in 200ms ease-out; }
-.animate-modal-in  { animation: modal-in 200ms ease-out; }
-
+.animate-toast-in { animation: toast-in 200ms ease-out; }
+.animate-modal-in { animation: modal-in 200ms ease-out; }
 .animate-fade-up { animation: fade-up 600ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-pop-in { animation: pop-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 .reveal { animation: reveal-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both; }
 
 /* ─── Micro-interactions ─────────────────────────────────────────────── */
 
-/* Button press — scale down + ink fill */
 .btn-press {
   position: relative;
   overflow: hidden;
@@ -193,7 +160,6 @@ input, textarea, select { font: inherit; }
 .btn-press:active::before { opacity: 0.15; transition-duration: 0ms; }
 .btn-press:disabled { transform: none; }
 
-/* Card hover — subtle lift + border glow */
 .card-interactive {
   transition:
     transform 180ms cubic-bezier(0.4, 0, 0.2, 1),
@@ -206,7 +172,6 @@ input, textarea, select { font: inherit; }
   box-shadow: var(--shadow-md);
 }
 
-/* Link underline animation */
 .link-underline {
   position: relative;
   transition: color 150ms ease-out;
@@ -228,8 +193,6 @@ input, textarea, select { font: inherit; }
   transform-origin: left;
 }
 
-/* ─── Reduced motion ─────────────────────────────────────────────────── */
-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -237,12 +200,9 @@ input, textarea, select { font: inherit; }
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
-  .animate-skeleton {
-    animation: none;
-    background: var(--bg-surface-2);
-  }
+  .animate-skeleton { animation: none; background: var(--bg-surface-2); }
   .reveal, .animate-fade-up, .animate-pop-in { animation: none !important; }
   .btn-press:hover { transform: none; }
   .card-interactive:hover { transform: none; }
   [data-state='open'], [data-state='closed'] { animation: none !important; }
-  }
+}
