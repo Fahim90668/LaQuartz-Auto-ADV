@@ -1,20 +1,20 @@
 /* ═══════════════════════════════════════════════════════════════════════
    THEME SYSTEM
-   Each theme defines a full palette + a 3-stop background gradient.
-   - --primary    : buttons, brand identity
-   - --neon       : live/running status, focus rings, active accents
-   - --highlight  : headers, bright decorative accents
-   - --break      : idle/paused/stopped state indicators ONLY
-   - --header     : heading text color (contrast-verified per theme)
-   - --primary-fg : text/icon color on top of --primary (contrast-checked)
-   - --grad-bg    : 3-stop linear gradient painted on body::before
+   Themes define palette + TINT (alpha) for the background gradient.
+   The tint overlays --bg-canvas (from base mode), so every
+   base-mode × theme combo composes correctly:
+     dark base  + aurora tint = dark purple
+     white base + aurora tint = light purple
+     same "Aurora" identity in both
 
-   Contrast (WCAG AA):
-     Aurora   header #E85BFF on #1A0B2E  = 7.2:1 ✓  white on #A020F0 = 5.6:1 ✓
-     Ember    header #FDBA74 on #241019  = 11.2:1 ✓  dark on #F97316 = 8.1:1 ✓
-     Mint     header #86EFAC on #0B2922  = 13.4:1 ✓  dark on #22C55E = 9.2:1 ✓
-     Ink      header #93C5FD on #111D32  = 11.8:1 ✓  white on #2563EB = 5.6:1 ✓
-     Porcelain header #0369A1 on #F0F6FA = 5.8:1 ✓  dark on #0EA5E9 = 4.7:1 ✓
+   Palette roles:
+     --primary    → buttons, brand identity
+     --neon       → focus rings, running status
+     --highlight  → headers, feature icons
+     --break      → contrasts with theme; small labels, idle status,
+                    bell icon, nav dot, secondary badges
+     --header     → heading text color (per-theme AA-verified)
+     --primary-fg → readable text on top of --primary
    ═══════════════════════════════════════════════════════════════════════ */
 
 /* ─── Base modes ─────────────────────────────────────────────────────── */
@@ -71,7 +71,9 @@ html[data-mode='white'] {
   --border-strong: #D4D4DC;
 }
 
-/* ─── Themes (each sets the full palette) ────────────────────────────── */
+/* ─── Themes ─────────────────────────────────────────────────────────── */
+/* --tint-edge / --tint-mid are the alpha gradient stops.
+   Base canvas shows through, so the gradient adapts automatically. */
 
 html[data-theme='aurora'] {
   --primary: #A020F0;
@@ -80,7 +82,8 @@ html[data-theme='aurora'] {
   --break: #22D3EE;
   --header: #E85BFF;
   --primary-fg: #FFFFFF;
-  --grad-bg: linear-gradient(180deg, #0A0710 0%, #1A0B2E 50%, #24103A 100%);
+  --tint-edge: rgba(160, 32, 240, 0.15);
+  --tint-mid:  rgba(232, 91, 255, 0.22);
 }
 
 html[data-theme='ember'] {
@@ -90,7 +93,8 @@ html[data-theme='ember'] {
   --break: #FBBF24;
   --header: #FDBA74;
   --primary-fg: #0A0710;
-  --grad-bg: linear-gradient(180deg, #0C080A 0%, #241019 50%, #351626 100%);
+  --tint-edge: rgba(249, 115, 22, 0.16);
+  --tint-mid:  rgba(253, 186, 116, 0.20);
 }
 
 html[data-theme='mint'] {
@@ -100,7 +104,8 @@ html[data-theme='mint'] {
   --break: #F472B6;
   --header: #86EFAC;
   --primary-fg: #0A0710;
-  --grad-bg: linear-gradient(180deg, #06110F 0%, #0B2922 50%, #123B30 100%);
+  --tint-edge: rgba(34, 197, 94, 0.15);
+  --tint-mid:  rgba(134, 239, 172, 0.20);
 }
 
 html[data-theme='ink'] {
@@ -110,7 +115,8 @@ html[data-theme='ink'] {
   --break: #3B82F6;
   --header: #93C5FD;
   --primary-fg: #FFFFFF;
-  --grad-bg: linear-gradient(180deg, #080D18 0%, #111D32 50%, #192A43 100%);
+  --tint-edge: rgba(37, 99, 235, 0.18);
+  --tint-mid:  rgba(147, 197, 253, 0.16);
 }
 
 html[data-theme='porcelain'] {
@@ -118,11 +124,12 @@ html[data-theme='porcelain'] {
   --neon: #10B981;
   --highlight: #86EFAC;
   --break: #10B981;
-  --header: #0369A1; /* darkened for AA contrast on light bg */
+  --header: #0369A1;
   --primary-fg: #0A0710;
-  --grad-bg: linear-gradient(180deg, #FFFFFF 0%, #F0F6FA 50%, #EAF5EE 100%);
+  --tint-edge: rgba(14, 165, 233, 0.05);
+  --tint-mid:  rgba(134, 239, 172, 0.08);
 
-  /* Porcelain is a full light theme — override mode surfaces too */
+  /* Porcelain overrides surfaces to force light mode regardless of base */
   --bg-canvas: #FAFAFA;
   --bg-surface: #FFFFFF;
   --bg-surface-2: #F5F5F7;
@@ -135,14 +142,12 @@ html[data-theme='porcelain'] {
   --border-strong: #D4D4DC;
 }
 
-/* ─── Backward-compat aliases (used across existing components) ─────── */
+/* ─── Backward-compat aliases (used by existing components) ─────────── */
 
 html {
   --brand-primary: var(--primary);
   --brand-neon: var(--neon);
   --brand-pink: var(--highlight);
-  --accent: var(--primary);
-  --accent-fg: var(--primary-fg);
   --grad-brand: linear-gradient(135deg, var(--primary) 0%, var(--highlight) 100%);
 }
 
@@ -150,17 +155,24 @@ html {
 
 .app-shell { background-color: transparent; }
 
-/* Header text uses the theme's --header color for identity */
 .theme-header { color: var(--header); }
 .theme-primary { color: var(--primary); }
 .theme-highlight { color: var(--highlight); }
 .break-color { color: var(--break); }
+.break-bg { background-color: var(--break); }
 
-/* Status dots — semantic mapping */
-.status-live    { background-color: var(--neon); }
-.status-rest    { background-color: var(--break); }
-.status-error   { background-color: var(--danger); }
+/* Break-color surfaces for small secondary elements */
+.break-badge {
+  background-color: color-mix(in srgb, var(--break) 15%, transparent);
+  color: var(--break);
+  border: 1px solid color-mix(in srgb, var(--break) 30%, transparent);
+}
 
-/* Bell badge / accent dots */
-.accent-dot  { background-color: var(--highlight); }
-.accent-color { color: var(--highlight); }
+/* Status indicators */
+.status-live  { background-color: var(--neon); }
+.status-rest  { background-color: var(--break); }
+.status-error { background-color: var(--danger); }
+
+/* Legacy accent aliases now point at theme colors */
+.accent-dot  { background-color: var(--primary); }
+.accent-color { color: var(--break); }
