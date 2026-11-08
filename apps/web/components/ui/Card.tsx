@@ -1,11 +1,16 @@
 import { type HTMLAttributes } from 'react';
 import { cn } from './cn';
 
-export function Card({ className, ...rest }: HTMLAttributes<HTMLDivElement>) {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  interactive?: boolean;
+}
+
+export function Card({ className, interactive, ...rest }: CardProps) {
   return (
     <div
       className={cn(
         'rounded-lg border border-border-subtle bg-surface p-5 shadow-sm',
+        interactive && 'card-interactive cursor-pointer',
         className,
       )}
       {...rest}
@@ -19,10 +24,10 @@ export function CardHeader({ className, ...rest }: HTMLAttributes<HTMLDivElement
 
 export function CardTitle({ className, ...rest }: HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h3 className={cn('text-step-1 font-semibold text-text-primary', className)} {...rest} />
+    <h3 className={cn('text-step-1 font-semibold text-[color:var(--primary)]', className)} {...rest} />
   );
 }
 
 export function CardDescription({ className, ...rest }: HTMLAttributes<HTMLParagraphElement>) {
   return <p className={cn('mt-1 text-sm text-text-secondary', className)} {...rest} />;
-  }
+                           }
