@@ -4,7 +4,7 @@ import { claimWorkerIdentity } from './lock.js';
 import { rehydrateRuntime } from './rehydrate.js';
 import { Heartbeat } from './heartbeat.js';
 import { Scheduler } from './scheduler.js';
-import { getSharedRateLimiter, resetSharedRateLimiterForTests } from '@app/discord';
+import { ContinuousManager } from './continuous.js';
 
 async function main() {
   const env = loadEnv();
@@ -32,11 +32,17 @@ async function main() {
   const scheduler = new Scheduler(env, heartbeat);
   scheduler.start();
 
+  const continuousManager = new ContinuousManager();
+  continuousManager.start();
+
   const shutdown = async (signal: string) => {
-    log.info('shutdown initiated', { signal, active: scheduler.getActiveCount() });
+    log.info('shutdown initiated', {
+      signal,
+      active: scheduler.getActiveCount(),
+    });
     heartbeat.stop();
     await scheduler.stop();
-    resetSharedRateLimiterForTests();
+    await continuousManager.stop();
     log.info('shutdown complete');
     process.exit(0);
   };
@@ -54,8 +60,6 @@ async function main() {
     log.fatal('uncaught exception', { err: err.message, stack: err.stack });
     process.exit(1);
   });
-
-  getSharedRateLimiter();
 }
 
 main().catch((err) => {
