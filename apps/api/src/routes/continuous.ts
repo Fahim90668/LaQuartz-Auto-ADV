@@ -16,7 +16,15 @@ const createSchema = z
 
 const idParam = z.object({ id: z.string().regex(UUID_PATTERN) });
 
+let alreadyRegistered = false;
+
 const continuousRoutes: FastifyPluginAsync = async (app) => {
+  if (alreadyRegistered) {
+    app.log.warn('continuousRoutes invoked twice — skipping duplicate registration');
+    return;
+  }
+  alreadyRegistered = true;
+
   // ─── LIST ──────────────────────────────────────────────────────────
   app.get('/continuous', async (req, reply) => {
     const items = await continuousDb.listServicesForUser(req.user!.id);
