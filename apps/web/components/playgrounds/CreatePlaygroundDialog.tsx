@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
+import { TimeSelector } from '@/components/ui/TimeSelector';
+import { ServerChannelPicker, type ServerChannelValue } from './ServerChannelPicker';
 import { useAccounts } from '@/hooks/useAccounts';
 import { useCreatePlayground } from '@/hooks/usePlaygrounds';
 import { useToast } from '@/hooks/useToast';
@@ -23,9 +25,8 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
   const [accountId, setAccountId] = useState('');
   const [name, setName] = useState('');
   const [mode, setMode] = useState<'manual' | 'slowmode'>('manual');
-  const [intervalSeconds, setIntervalSeconds] = useState(300);
-  const [serverId, setServerId] = useState('');
-  const [channelId, setChannelId] = useState('');
+  const [seconds, setSeconds] = useState(300);
+  const [channel, setChannel] = useState<ServerChannelValue | null>(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -33,9 +34,8 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
     setAccountId('');
     setName('');
     setMode('manual');
-    setIntervalSeconds(300);
-    setServerId('');
-    setChannelId('');
+    setSeconds(300);
+    setChannel(null);
     setMessage('');
     setError(null);
   };
@@ -44,8 +44,7 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
     setError(null);
     if (!accountId) return setError('Pick an account.');
     if (!name.trim()) return setError('Name is required.');
-    if (!serverId.match(/^\d{17,20}$/)) return setError('Server ID must be a valid snowflake.');
-    if (!channelId.match(/^\d{17,20}$/)) return setError('Channel ID must be a valid snowflake.');
+    if (!channel) return setError('Pick a server and channel.');
     if (!message.trim()) return setError('Message is required.');
 
     create.mutate(
@@ -53,8 +52,15 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
         accountId,
         name: name.trim(),
         mode,
-        intervalSeconds,
-        channels: [{ serverId, channelId }],
+        intervalSeconds: seconds,
+        channels: [
+          {
+            serverId: channel.serverId,
+            channelId: channel.channelId,
+            serverName: channel.serverName,
+            channelName: channel.channelName,
+          },
+        ],
         messages: [{ content: message.trim() }],
       },
       {
@@ -72,8 +78,8 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
     <Dialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Create Playground"
-      description="Set up a new ad campaign. You can add up to 5 channels later."
+      title="Create playground"
+      description="Pick an account, one server and channel, a message, and a timing mode. You can add more channels later."
       size="lg"
       footer={
         <>
@@ -84,10 +90,13 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
     >
       <div className="space-y-4">
         <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">Account</label>
+          <label className="mb-1 block text-step--2 text-text-tertiary">Account</label>
           <Select
             value={accountId}
-            onValueChange={setAccountId}
+            onValueChange={(v) => {
+              setAccountId(v);
+              setChannel(null);
+            }}
             placeholder="Select a Discord account"
             options={(accounts ?? []).map((a) => ({
               value: a.id,
@@ -98,7 +107,7 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">Name</label>
+          <label className="mb-1 block text-step--2 text-text-tertiary">Name</label>
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -107,57 +116,33 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">Timing mode</label>
-            <Select
-              value={mode}
-              onValueChange={(v) => setMode(v as 'manual' | 'slowmode')}
-              options={[
-                { value: 'manual', label: 'Manual interval' },
-                { value: 'slowmode', label: 'Auto slow-mode' },
-              ]}
-            />
-          </div>
-          {mode === 'manual' && (
-            <div>
-              <label className="mb-1 block text-xs font-medium text-text-secondary">
-                Interval (seconds)
-              </label>
-              <Input
-                type="number"
-                min={30}
-                max={604800}
-                value={intervalSeconds}
-                onChange={(e) => setIntervalSeconds(Number(e.target.value))}
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">Server ID</label>
-            <Input
-              value={serverId}
-              onChange={(e) => setServerId(e.target.value)}
-              placeholder="Right-click server → Copy ID"
-              className="font-mono"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-text-secondary">Channel ID</label>
-            <Input
-              value={channelId}
-              onChange={(e) => setChannelId(e.target.value)}
-              placeholder="Right-click channel → Copy ID"
-              className="font-mono"
-            />
-          </div>
-        </div>
+        <ServerChannelPicker
+          accountId={accountId || undefined}
+          value={channel}
+          onChange={setChannel}
+        />
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-text-secondary">Message</label>
+          <label className="mb-1 block text-step--2 text-text-tertiary">Timing mode</label>
+          <Select
+            value={mode}
+            onValueChange={(v) => setMode(v as 'manual' | 'slowmode')}
+            options={[
+              { value: 'manual', label: 'Manual interval' },
+              { value: 'slowmode', label: 'Auto slow-mode' },
+            ]}
+          />
+        </div>
+
+        {mode === 'manual' && (
+          <div>
+            <label className="mb-1 block text-step--2 text-text-tertiary">Interval</label>
+            <TimeSelector totalSeconds={seconds} onChange={setSeconds} />
+          </div>
+        )}
+
+        <div>
+          <label className="mb-1 block text-step--2 text-text-tertiary">Message</label>
           <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -167,8 +152,8 @@ export function CreatePlaygroundDialog({ open, onOpenChange }: CreatePlaygroundD
           />
         </div>
 
-        {error && <p className="text-xs text-danger">{error}</p>}
+        {error && <p className="text-step--2 text-danger">{error}</p>}
       </div>
     </Dialog>
   );
-}
+    }
