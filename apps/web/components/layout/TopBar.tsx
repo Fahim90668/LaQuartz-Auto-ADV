@@ -36,8 +36,10 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         </button>
 
         <div className="min-w-0">
-          <p className="text-xs uppercase tracking-wider text-text-tertiary">Panel</p>
-          <h1 className="truncate text-h3 font-semibold text-text-primary">{title}</h1>
+          <p className="text-[10px] font-medium uppercase tracking-wider break-color">Panel</p>
+          <h1 className="truncate text-step-1 font-semibold text-[color:var(--header)]">
+            {title}
+          </h1>
         </div>
       </div>
 
@@ -47,4 +49,4 @@ export function TopBar({ onMenuClick }: TopBarProps) {
       </div>
     </header>
   );
-          }
+}
