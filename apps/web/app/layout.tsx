@@ -22,12 +22,11 @@ const spaceGrotesk = Space_Grotesk({
 const themeInitScript = `
 (function(){
   try {
-    var s = localStorage.getItem('laquartz.appearance.v1');
+    var s = localStorage.getItem('laquartz.appearance.v2');
     var p = s ? (JSON.parse(s).state || {}) : {};
     var root = document.documentElement;
     root.setAttribute('data-mode', p.mode || 'obsidian');
     root.setAttribute('data-theme', p.theme || 'aurora');
-    root.setAttribute('data-accent', p.accent || 'brand');
   } catch (e) {}
 })();
 `;
@@ -39,7 +38,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={spaceGrotesk.variable}
       data-mode="obsidian"
       data-theme="aurora"
-      data-accent="brand"
       suppressHydrationWarning
     >
       <head>
