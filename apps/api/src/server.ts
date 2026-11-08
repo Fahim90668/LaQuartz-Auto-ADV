@@ -34,7 +34,6 @@ export async function buildServer(env: Env): Promise<FastifyInstance> {
     bodyLimit: 1024 * 1024,
   });
 
-  // Allow POST/PATCH with Content-Type: application/json and an empty body
   app.addContentTypeParser(
     'application/json',
     { parseAs: 'string' },
@@ -66,7 +65,7 @@ export async function buildServer(env: Env): Promise<FastifyInstance> {
   await app.register(discordRoutes);
   await app.register(playgroundRoutes);
   await app.register(logRoutes);
-  await app.register(continuousRoutes);
+  await app.register(continuousRoutes);   // ← only ONE registration
 
   return app;
-    }
+        }
