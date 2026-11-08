@@ -15,12 +15,36 @@ import {
 import { DiscordMockup } from './DiscordMockup';
 
 const features = [
-  { icon: Shield, title: 'Encrypted tokens', body: 'AES-256-GCM at rest. Never sent back to the browser. Decrypted only in API and worker, in-process, at send time.' },
-  { icon: Gauge, title: 'Slow-mode native', body: 'Reads Discord\u2019s native rate limit per channel and reposts just after each window expires. No spam, no bans.' },
-  { icon: MessageSquare, title: 'Message rotation', body: 'Up to 10 message variants per playground. Each send picks the next active one so repeated posts never look automated.' },
-  { icon: Sparkles, title: 'Multi-channel', body: 'Up to 5 channels per campaign. A failure in one channel never blocks the others. Isolated delivery errors.' },
-  { icon: Zap, title: 'Live status', body: 'Delivery logs, latency, and error codes surfaced in real time. Every send is auditable down to the millisecond.' },
-  { icon: CheckCircle2, title: 'License-backed', body: 'Redeem codes with per-account playground limits. Destroyed codes revoke access immediately.' },
+  {
+    icon: Shield,
+    title: 'Encrypted tokens',
+    body: 'AES-256-GCM at rest. Never sent back to the browser. Decrypted only in API and worker, in-process, at send time.',
+  },
+  {
+    icon: Gauge,
+    title: 'Slow-mode native',
+    body: "Reads Discord's native rate limit per channel and reposts just after each window expires. No spam, no bans.",
+  },
+  {
+    icon: MessageSquare,
+    title: 'Message rotation',
+    body: 'Up to 10 message variants per playground. Each send picks the next active one so repeated posts never look automated.',
+  },
+  {
+    icon: Sparkles,
+    title: 'Multi-channel',
+    body: 'Up to 5 channels per campaign. A failure in one channel never blocks the others. Isolated delivery errors.',
+  },
+  {
+    icon: Zap,
+    title: 'Live status',
+    body: 'Delivery logs, latency, and error codes surfaced in real time. Every send is auditable down to the millisecond.',
+  },
+  {
+    icon: CheckCircle2,
+    title: 'License-backed',
+    body: 'Redeem codes with per-account playground limits. Destroyed codes revoke access immediately.',
+  },
 ];
 
 export interface HomeContentProps {
@@ -37,13 +61,13 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
 
   return (
     <div className="app-shell relative min-h-screen overflow-hidden">
-      {/* Header */}
+      {/* ─── Header ─────────────────────────────────────────────────── */}
       <header className="relative z-10 flex items-center justify-between px-6 py-5 lg:px-10">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[image:var(--grad-brand)] shadow-glow">
             <Zap className="h-4 w-4 text-[color:var(--primary-fg)]" aria-hidden />
           </div>
-          <span className="font-display text-step--1 font-semibold tracking-tight text-text-primary">
+          <span className="font-display text-step--1 font-semibold tracking-tight text-[color:var(--header)]">
             LaQuartz AUTO-ADV
           </span>
         </Link>
@@ -60,15 +84,15 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         </nav>
       </header>
 
-      {/* Hero: 2-col golden-ratio split (0.618 / 0.382) */}
+      {/* ─── Hero: golden-ratio 2-col split ─────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 pt-12 sm:pt-16 lg:pt-20">
         <div
           className="grid items-center gap-10 lg:gap-12"
           style={{ gridTemplateColumns: 'minmax(0, 1.618fr) minmax(0, 1fr)' }}
         >
           <div className="animate-fade-up">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border-subtle bg-surface/60 px-3 py-1 text-step--2 text-text-secondary backdrop-blur-sm">
-              <Sparkles className="h-3 w-3 theme-highlight" aria-hidden />
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--break)]/40 bg-[color:var(--break)]/10 px-3 py-1 text-step--2 break-color backdrop-blur-sm">
+              <Sparkles className="h-3 w-3" aria-hidden />
               Multi-account Discord advertising
             </span>
 
@@ -107,10 +131,9 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
             )}
           </div>
 
-          {/* Hero visual — pop-in with slight rotation for "real" feel */}
+          {/* Hero visual — pop-in with slight delay + ambient glow */}
           <div className="animate-pop-in" style={{ animationDelay: '150ms' }}>
             <div className="relative mx-auto w-full max-w-[340px] lg:max-w-none">
-              {/* Ambient glow behind the card */}
               <div
                 aria-hidden
                 className="absolute inset-0 -z-10 rounded-lg blur-2xl opacity-30"
@@ -118,7 +141,7 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
               />
               <div className="rounded-lg border border-border-subtle bg-surface p-4 shadow-lg">
                 <div className="mb-3 flex items-center justify-between">
-                  <span className="text-step--2 uppercase tracking-wider text-text-tertiary">
+                  <span className="text-step--2 uppercase tracking-wider break-color">
                     Playground · live
                   </span>
                   <span className="flex items-center gap-1 text-step--2 text-text-secondary">
@@ -128,12 +151,17 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
                 </div>
                 <p className="text-step--1 font-medium text-text-primary">Gaming Hub Promo</p>
                 <div className="mt-3 space-y-1.5 text-step--2 text-text-tertiary">
-                  <p>· <span className="text-text-secondary">#general</span> · #announcements</p>
+                  <p>
+                    · <span className="text-text-secondary">#general</span> · #announcements
+                  </p>
                   <p>· next send in 04:58</p>
                   <p>· 42 sent · 0 failed</p>
                 </div>
                 <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-surface-2">
-                  <div className="h-full w-2/3 rounded-full" style={{ background: 'var(--grad-brand)' }} />
+                  <div
+                    className="h-full w-2/3 rounded-full"
+                    style={{ background: 'var(--grad-brand)' }}
+                  />
                 </div>
               </div>
             </div>
@@ -141,10 +169,12 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         </div>
       </section>
 
-      {/* How it works — Discord mockup */}
+      {/* ─── How it works — Discord mockup ──────────────────────────── */}
       <section className="relative z-10 mx-auto mt-20 max-w-6xl px-6">
         <div className="mx-auto max-w-3xl text-center">
-          <h2 className="font-display text-step-2 font-semibold">How it works, in three steps</h2>
+          <h2 className="font-display text-step-2 font-semibold">
+            How it works, in three steps
+          </h2>
           <p className="mx-auto mt-2 max-w-xl text-step-0 text-text-secondary">
             You create a playground. The worker sends on schedule. Discord sees a message
             from your account — not a bot. Every send is logged.
@@ -154,12 +184,26 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         <div className="mt-8 grid items-center gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             {[
-              { n: '01', title: 'Start a playground', body: 'Pick an account, up to 5 channels, up to 10 message variants. Choose manual interval or automatic slow-mode sync.' },
-              { n: '02', title: 'Worker schedules and sends', body: 'A background worker polls a durable queue. Sends happen from your Discord account — respecting per-channel rate limits.' },
-              { n: '03', title: 'Every send is auditable', body: 'Delivery logs, latency, error codes, retries — all in the panel. Nothing is sent without a record.' },
+              {
+                n: '01',
+                title: 'Start a playground',
+                body: 'Pick an account, up to 5 channels, up to 10 message variants. Choose manual interval or automatic slow-mode sync.',
+              },
+              {
+                n: '02',
+                title: 'Worker schedules and sends',
+                body: 'A background worker polls a durable queue. Sends happen from your Discord account — respecting per-channel rate limits.',
+              },
+              {
+                n: '03',
+                title: 'Every send is auditable',
+                body: 'Delivery logs, latency, error codes, retries — all in the panel. Nothing is sent without a record.',
+              },
             ].map((step) => (
               <div key={step.n} className="flex gap-4">
-                <span className="font-display text-step-3 font-semibold leading-none theme-primary">{step.n}</span>
+                <span className="font-display text-step-3 font-semibold leading-none theme-primary">
+                  {step.n}
+                </span>
                 <div>
                   <h3 className="font-display text-step-1 font-semibold">{step.title}</h3>
                   <p className="mt-1 text-step--1 text-text-secondary">{step.body}</p>
@@ -178,7 +222,7 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         </div>
       </section>
 
-      {/* Features */}
+      {/* ─── Features ────────────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 py-20">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-display text-step-2 font-semibold">
@@ -196,10 +240,10 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
           {features.map((f, i) => (
             <div
               key={f.title}
-              className="reveal rounded-lg border border-border-subtle bg-surface/70 p-5 backdrop-blur-sm transition-colors hover:border-[color:var(--primary)]/40"
+              className="reveal card-interactive rounded-lg border border-border-subtle bg-surface/70 p-5 backdrop-blur-sm hover:border-[color:var(--primary)]/40"
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <f.icon className="h-5 w-5 theme-primary" aria-hidden />
+              <f.icon className="h-5 w-5 theme-highlight" aria-hidden />
               <h3 className="font-display mt-3 text-step-1 font-semibold">{f.title}</h3>
               <p className="mt-1 text-step--1 text-text-secondary">{f.body}</p>
             </div>
@@ -207,7 +251,7 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* ─── CTA strip ──────────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-4xl px-6 pb-20">
         <div className="rounded-lg border border-border-subtle bg-surface/70 p-8 text-center backdrop-blur-sm sm:p-12">
           <h2 className="font-display text-step-2 font-semibold">Ready to start advertising?</h2>
@@ -235,16 +279,28 @@ export function HomeContent({ authenticated, hasAccess }: HomeContentProps) {
         </div>
       </section>
 
+      {/* ─── Footer ─────────────────────────────────────────────────── */}
       <footer className="relative z-10 border-t border-border-subtle px-6 py-6">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-step--2 text-text-tertiary sm:flex-row">
           <p>© {new Date().getFullYear()} LaQuartz AUTO-ADV. All rights reserved.</p>
           <nav className="flex items-center gap-4" aria-label="Footer">
-            <Link href="/docs" className="link-underline hover:text-text-secondary">Docs</Link>
-            <Link href="/login" className="link-underline hover:text-text-secondary">Sign in</Link>
-            <a href="https://discord.gg/StJmYFAFyj" target="_blank" rel="noreferrer noopener" className="link-underline hover:text-text-secondary">Discord</a>
+            <Link href="/docs" className="link-underline hover:text-text-secondary">
+              Docs
+            </Link>
+            <Link href="/login" className="link-underline hover:text-text-secondary">
+              Sign in
+            </Link>
+            <a
+              href="https://discord.gg/StJmYFAFyj"
+              target="_blank"
+              rel="noreferrer noopener"
+              className="link-underline hover:text-text-secondary"
+            >
+              Discord
+            </a>
           </nav>
         </div>
       </footer>
     </div>
   );
-   }
+    }
