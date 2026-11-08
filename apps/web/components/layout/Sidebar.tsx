@@ -4,14 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
-  X,
-  Zap,
-  LayoutDashboard,
-  Users,
-  Sparkles,
-  Ticket,
-  Settings,
-  BookOpen,
+  X, Zap, LayoutDashboard, Users, Sparkles, Ticket, Settings, BookOpen,
 } from 'lucide-react';
 import { NavItem } from './NavItem';
 import { cn } from '@/components/ui/cn';
@@ -25,13 +18,7 @@ const items = [
   { href: '/settings',    label: 'Settings',    icon: Settings },
 ];
 
-function SidebarInner({
-  onNavigate,
-  showClose,
-}: {
-  onNavigate?: () => void;
-  showClose?: boolean;
-}) {
+function SidebarInner({ onNavigate, showClose }: { onNavigate?: () => void; showClose?: boolean }) {
   const pathname = usePathname();
 
   return (
@@ -39,13 +26,13 @@ function SidebarInner({
       <div className="flex h-[var(--topbar-height)] items-center justify-between border-b border-border-subtle px-4">
         <div className="flex min-w-0 items-center gap-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[image:var(--grad-brand)] shadow-md">
-            <Zap className="h-4 w-4 text-[color:var(--accent-fg)]" />
+            <Zap className="h-4 w-4 text-[color:var(--primary-fg)]" aria-hidden />
           </div>
           <div className="min-w-0">
-            <p className="truncate text-sm font-semibold text-text-primary">
+            <p className="truncate text-sm font-semibold text-[color:var(--header)]">
               LaQuartz AUTO-ADV
             </p>
-            <p className="text-[10px] uppercase tracking-wider text-text-tertiary">Panel</p>
+            <p className="text-[10px] uppercase tracking-wider break-color">Panel</p>
           </div>
         </div>
 
@@ -82,7 +69,7 @@ function SidebarInner({
         <Link
           href="/no-access"
           onClick={onNavigate}
-          className="block rounded-md border border-border-subtle bg-surface-2 p-3 text-xs text-text-secondary transition-colors hover:border-brand-primary/50 hover:text-text-primary"
+          className="block rounded-md border border-border-subtle bg-surface-2 p-3 text-step--2 text-text-secondary transition-colors hover:border-[color:var(--primary)]/50 hover:text-text-primary"
         >
           <p className="mb-1 font-medium text-text-primary">Need more access?</p>
           <p>Buy a code from our Discord server →</p>
@@ -130,4 +117,4 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
       </Dialog.Root>
     </>
   );
-}
+          }
