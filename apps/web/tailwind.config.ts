@@ -38,13 +38,13 @@ const config: Config = {
         info: 'var(--info)',
       },
 
-      /* ── Typography ───────────────────────────────────────────── */
       fontFamily: {
+        display: ['var(--font-display)', 'InterVariable', 'Inter', 'system-ui', 'sans-serif'],
         sans: ['InterVariable', 'Inter', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
+
       fontSize: {
-        /* φ-derived scale */
         'step--2': ['var(--step--2)', { lineHeight: 'var(--lh-meta)' }],
         'step--1': ['var(--step--1)', { lineHeight: 'var(--lh-meta)' }],
         'step-0':  ['var(--step-0)',  { lineHeight: 'var(--lh-body)' }],
@@ -54,7 +54,6 @@ const config: Config = {
         'step-4':  ['var(--step-4)',  { lineHeight: 'var(--lh-tight)' }],
       },
 
-      /* ── Spacing (φ-derived additive layer) ───────────────────── */
       spacing: {
         'phi-1': 'var(--space-phi-1)',
         'phi-2': 'var(--space-phi-2)',
@@ -64,7 +63,6 @@ const config: Config = {
         'phi-6': 'var(--space-phi-6)',
       },
 
-      /* ── Radii ────────────────────────────────────────────────── */
       borderRadius: {
         sm: 'var(--radius-sm)',
         md: 'var(--radius-md)',
