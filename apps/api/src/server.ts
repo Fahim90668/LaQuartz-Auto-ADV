@@ -65,7 +65,7 @@ export async function buildServer(env: Env): Promise<FastifyInstance> {
   await app.register(discordRoutes);
   await app.register(playgroundRoutes);
   await app.register(logRoutes);
-  await app.register(continuousRoutes);   // ← only ONE registration
+  await app.register(continuousRoutes);
 
   return app;
-        }
+  }
