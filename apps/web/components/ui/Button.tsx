@@ -13,13 +13,25 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   loading?: boolean;
 }
 
+/**
+ * All button colors derive from theme vars:
+ *   primary   → gradient from --primary to --highlight
+ *               text/icon = --primary-fg (auto-contrast)
+ *   secondary → --primary text/icon on neutral surface
+ *   ghost     → text-secondary, hover reveals --primary
+ *   danger    → fixed semantic red (never themed)
+ *
+ * Icons inherit currentColor, so they automatically retint with the theme.
+ */
 const variants: Record<Variant, string> = {
   primary:
     'bg-[image:var(--grad-brand)] text-[color:var(--primary-fg)] shadow-md hover:shadow-glow',
   secondary:
-    'bg-surface-2 text-text-primary border border-border-subtle hover:bg-surface-3 hover:border-border-strong',
-  ghost: 'text-text-secondary hover:text-text-primary hover:bg-surface-2',
-  danger: 'bg-danger text-white hover:brightness-110',
+    'bg-surface-2 text-[color:var(--primary)] border border-border-subtle hover:bg-surface-3 hover:border-[color:var(--primary)]/40',
+  ghost:
+    'text-text-secondary hover:text-[color:var(--primary)] hover:bg-surface-2',
+  danger:
+    'bg-danger text-white hover:brightness-110',
 };
 
 const sizes: Record<Size, string> = {
