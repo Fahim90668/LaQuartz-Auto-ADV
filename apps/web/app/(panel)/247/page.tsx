@@ -107,7 +107,6 @@ export default function ContinuousPage() {
   const [autoCycle, setAutoCycle] = useState(false);
   const [autoIntervalSeconds, setAutoIntervalSeconds] = useState(300);
 
-  // Rich presence fields
   const [activityType, setActivityType] = useState('0');
   const [activityName, setActivityName] = useState('');
   const [activityState, setActivityState] = useState('');
@@ -423,7 +422,7 @@ export default function ContinuousPage() {
                       maxLength={128}
                     />
                     <p className="mt-1 text-step--2 text-text-tertiary">
-                      Shown as &quot;Playing <em>{activityName || 'X'}</em>&quot; in the
+                      Shown as &quot;Playing {activityName || 'X'}&quot; in the
                       member list.
                     </p>
                   </div>
@@ -471,7 +470,8 @@ export default function ContinuousPage() {
                     <span className="shrink-0 text-[color:var(--break)]">⚠️</span>
                     <span>
                       Rich presence is visible to everyone in the same servers as
-                      the account. Use text you&apos;re comfortable sharing publicly.
+                      the account. Use text you&apos;re comfortable sharing
+                      publicly.
                     </span>
                   </p>
                 </div>
@@ -542,9 +542,15 @@ function ServiceCard({
   const activity = service.config.activity as
     | { type?: number; name?: string; state?: string; details?: string }
     | undefined;
-  const activityTypeLabel = ['Playing', '', 'Listening to', 'Watching', '', 'Competing in'][
-    Number(activity?.type ?? -1)
+  const activityTypeLabels = [
+    'Playing',
+    '',
+    'Listening to',
+    'Watching',
+    '',
+    'Competing in',
   ];
+  const activityTypeLabel = activityTypeLabels[Number(activity?.type ?? -1)];
   const activitySummary = activity?.name
     ? `${activityTypeLabel || 'Activity'}: ${activity.name}`
     : null;
@@ -559,7 +565,4 @@ function ServiceCard({
   const channelSummary =
     service.serviceType !== 'onliner'
       ? `channel: ${String(service.config.channelId ?? '—')}`
-      : null;
-
-  return (
-    <div className="rounded-lg 
+  
