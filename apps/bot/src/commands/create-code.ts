@@ -40,8 +40,8 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName('feature')
-      .setDescription('Which 24/7 feature slot(s) this code grants')
-      .setRequired(true)
+      .setDescription('Optional — which 24/7 feature slot(s) this code grants')
+      .setRequired(false)
       .addChoices(...FEATURE_CHOICES),
   )
   .addStringOption((opt) =>
@@ -58,9 +58,10 @@ export async function execute(
 ): Promise<void> {
   const timeInput = interaction.options.getString('time', true).trim().toLowerCase();
   const playgroundLimit = interaction.options.getInteger('playground', true);
-  const featureChoice = interaction.options.getString('feature', true);
+  const featureChoice = interaction.options.getString('feature'); // optional now
   const note = interaction.options.getString('note') ?? undefined;
 
+  // ── Parse time ─────────────────────────────────────────────────────
   let duration: CodeDuration;
   let durationDays: number | undefined;
 
@@ -84,10 +85,17 @@ export async function execute(
     durationDays = days;
   }
 
-  const features = featureChoice.split('+');
-  const limitOnliner = features.includes('onliner') ? 1 : 0;
-  const limitVc = features.includes('vc') ? 1 : 0;
-  const limitTyper = features.includes('typer') ? 1 : 0;
+  // ── Parse feature (optional — null means no 24/7 slots) ────────────
+  let limitOnliner = 0;
+  let limitVc = 0;
+  let limitTyper = 0;
+
+  if (featureChoice) {
+    const features = featureChoice.split('+');
+    limitOnliner = features.includes('onliner') ? 1 : 0;
+    limitVc = features.includes('vc') ? 1 : 0;
+    limitTyper = features.includes('typer') ? 1 : 0;
+  }
 
   await interaction.deferReply({ ephemeral: true });
 
@@ -141,7 +149,7 @@ export async function execute(
       { name: 'Code', value: `\`\`\`\n${result.code}\n\`\`\``, inline: false },
       { name: 'Duration', value: durationLabel, inline: true },
       { name: 'Playgrounds', value: String(result.playgroundLimit), inline: true },
-      { name: 'Features', value: featureLabels || '—', inline: false },
+      { name: 'Features', value: featureLabels || 'None', inline: false },
       { name: 'Code ID', value: `\`${result.codeId}\``, inline: false },
     );
 
