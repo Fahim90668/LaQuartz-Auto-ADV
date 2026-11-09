@@ -9,6 +9,7 @@ const labels: Record<string, string> = {
   '/overview': 'Overview',
   '/accounts': 'Accounts',
   '/playgrounds': 'Playgrounds',
+  '/247': '24/7 Services',
   '/redeem': 'Redeem',
   '/docs': 'Docs',
   '/settings': 'Settings',
