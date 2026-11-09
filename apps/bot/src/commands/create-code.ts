@@ -6,8 +6,17 @@ import {
 import type { CodeDuration } from '@app/shared';
 import { createCode } from '../services/code.service.js';
 import { recordBotAudit } from '../services/audit.service.js';
-import { formatDurationLabel } from '../lib/format.js';
 import { successEmbed, errorEmbed } from '../lib/embeds.js';
+
+const FEATURE_CHOICES = [
+  { name: 'Onliner only', value: 'onliner' },
+  { name: 'VC only', value: 'vc' },
+  { name: 'Typer only', value: 'typer' },
+  { name: 'Onliner + VC', value: 'onliner+vc' },
+  { name: 'Onliner + Typer', value: 'onliner+typer' },
+  { name: 'VC + Typer', value: 'vc+typer' },
+  { name: 'All three (Onliner + VC + Typer)', value: 'onliner+vc+typer' },
+] as const;
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
   .setName('create-code')
@@ -15,26 +24,30 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
   .addStringOption((opt) =>
     opt
       .setName('time')
-      .setDescription('Lifetime of the code.')
+      .setDescription('Duration: "lifetime" or a number of days (7-365)')
       .setRequired(true)
-      .addChoices(
-        { name: 'Lifetime', value: 'lifetime' },
-        { name: '1 Month (30 days)', value: '1m' },
-        { name: '3 Months (90 days)', value: '3m' },
-      ),
+      .setMinLength(2)
+      .setMaxLength(10),
   )
   .addIntegerOption((opt) =>
     opt
       .setName('playground')
-      .setDescription('Maximum number of playgrounds this code allows (1–50).')
+      .setDescription('Max playgrounds this code allows (1-50)')
       .setRequired(true)
       .setMinValue(1)
       .setMaxValue(50),
   )
   .addStringOption((opt) =>
     opt
+      .setName('feature')
+      .setDescription('Which 24/7 feature slot(s) this code grants')
+      .setRequired(true)
+      .addChoices(...FEATURE_CHOICES),
+  )
+  .addStringOption((opt) =>
+    opt
       .setName('note')
-      .setDescription('Optional note for internal tracking.')
+      .setDescription('Optional internal note')
       .setRequired(false)
       .setMaxLength(200),
   )
@@ -43,16 +56,54 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
 export async function execute(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
-  const duration = interaction.options.getString('time', true) as CodeDuration;
+  const timeInput = interaction.options
+    .getString('time', true)
+    .trim()
+    .toLowerCase();
   const playgroundLimit = interaction.options.getInteger('playground', true);
+  const featureChoice = interaction.options.getString('feature', true);
   const note = interaction.options.getString('note') ?? undefined;
+
+  // ── Parse time ─────────────────────────────────────────────────────
+  let duration: CodeDuration;
+  let durationDays: number | undefined;
+
+  if (timeInput === 'lifetime') {
+    duration = 'lifetime';
+  } else {
+    const days = parseInt(timeInput, 10);
+    if (!Number.isFinite(days) || days < 7 || days > 365) {
+      await interaction.reply({
+        embeds: [
+          errorEmbed(
+            'Invalid time value',
+            'Enter `lifetime` or a number of days between **7** and **365**.\nExamples: `lifetime`, `30`, `90`, `180`.',
+          ),
+        ],
+        ephemeral: true,
+      });
+      return;
+    }
+    duration = 'custom';
+    durationDays = days;
+  }
+
+  // ── Parse feature combination ──────────────────────────────────────
+  const features = featureChoice.split('+');
+  const limitOnliner = features.includes('onliner') ? 1 : 0;
+  const limitVc = features.includes('vc') ? 1 : 0;
+  const limitTyper = features.includes('typer') ? 1 : 0;
 
   await interaction.deferReply({ ephemeral: true });
 
   try {
     const result = await createCode({
       duration,
+      durationDays,
       playgroundLimit,
+      limitOnliner,
+      limitVc,
+      limitTyper,
       adminDiscordId: interaction.user.id,
       note,
     });
@@ -63,33 +114,49 @@ export async function execute(
       targetType: 'redeem_code',
       targetId: result.codeId,
       metadata: {
-        duration: result.duration,
-        playgroundLimit: result.playgroundLimit,
+        duration,
+        durationDays,
+        playgroundLimit,
+        limitOnliner,
+        limitVc,
+        limitTyper,
         preview: result.preview,
         source: 'discord-bot',
       },
     });
 
+    const durationLabel =
+      result.duration === 'lifetime'
+        ? 'Lifetime'
+        : result.duration === 'custom'
+          ? `${result.durationDays} days`
+          : result.duration === '1m'
+            ? '30 days (1m)'
+            : '90 days (3m)';
+
+    const featureLabels = [
+      limitOnliner ? '1× Onliner' : null,
+      limitVc ? '1× VC' : null,
+      limitTyper ? '1× Typer' : null,
+    ]
+      .filter(Boolean)
+      .join(' · ');
+
     const embed = successEmbed('✅ Redeem Code Created')
       .addFields(
         { name: 'Code', value: `\`\`\`\n${result.code}\n\`\`\``, inline: false },
-        {
-          name: 'Duration',
-          value: formatDurationLabel(result.duration),
-          inline: true,
-        },
-        {
-          name: 'Playgrounds',
-          value: String(result.playgroundLimit),
-          inline: true,
-        },
+        { name: 'Duration', value: durationLabel, inline: true },
+        { name: 'Playgrounds', value: String(result.playgroundLimit), inline: true },
+        { name: 'Features', value: featureLabels || '—', inline: false },
         { name: 'Code ID', value: `\`${result.codeId}\``, inline: false },
       )
       .setFooter({
-        text: 'Redeem at the web panel · This message is only visible to you.',
+        text: 'Redeem at the web panel · Only visible to you.',
       });
 
-    if (note) embed.addFields({ name: 'Note', value: note, inline: false });
+    if (note) {
+      embed.addFields({ name: 'Note', value: note, inline: false });
+    }
 
     await interaction.editReply({ embeds: [embed] });
   } catch (err) {
@@ -98,4 +165,4 @@ export async function execute(
       embeds: [errorEmbed('❌ Code Creation Failed', message)],
     });
   }
-}
+   }
