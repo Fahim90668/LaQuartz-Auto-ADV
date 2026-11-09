@@ -11,6 +11,9 @@ function toDTO(row: CodeRow): RedeemCodeDTO {
     duration: row.duration as CodeDuration,
     durationDays: row.duration_days,
     playgroundLimit: row.playground_limit,
+    limitOnliner: (row as unknown as { limit_onliner?: number }).limit_onliner ?? 0,
+    limitVc: (row as unknown as { limit_vc?: number }).limit_vc ?? 0,
+    limitTyper: (row as unknown as { limit_typer?: number }).limit_typer ?? 0,
     status: row.status,
     redeemedBy: row.redeemed_by,
     redeemedAt: row.redeemed_at,
@@ -78,7 +81,7 @@ export async function botCreateCode(input: CreateCodeRpcInput): Promise<CreateCo
     p_limit_onliner: input.limitOnliner ?? 0,
     p_limit_vc: input.limitVc ?? 0,
     p_limit_typer: input.limitTyper ?? 0,
-  });
+  } as never);
   if (error) throw error;
 
   const row = Array.isArray(data) ? data[0] : data;
