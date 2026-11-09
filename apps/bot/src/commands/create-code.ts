@@ -56,15 +56,11 @@ export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
 export async function execute(
   interaction: ChatInputCommandInteraction,
 ): Promise<void> {
-  const timeInput = interaction.options
-    .getString('time', true)
-    .trim()
-    .toLowerCase();
+  const timeInput = interaction.options.getString('time', true).trim().toLowerCase();
   const playgroundLimit = interaction.options.getInteger('playground', true);
   const featureChoice = interaction.options.getString('feature', true);
   const note = interaction.options.getString('note') ?? undefined;
 
-  // ── Parse time ─────────────────────────────────────────────────────
   let duration: CodeDuration;
   let durationDays: number | undefined;
 
@@ -88,7 +84,6 @@ export async function execute(
     durationDays = days;
   }
 
-  // ── Parse feature combination ──────────────────────────────────────
   const features = featureChoice.split('+');
   const limitOnliner = features.includes('onliner') ? 1 : 0;
   const limitVc = features.includes('vc') ? 1 : 0;
@@ -142,17 +137,13 @@ export async function execute(
       .filter(Boolean)
       .join(' · ');
 
-    const embed = successEmbed('✅ Redeem Code Created')
-      .addFields(
-        { name: 'Code', value: `\`\`\`\n${result.code}\n\`\`\``, inline: false },
-        { name: 'Duration', value: durationLabel, inline: true },
-        { name: 'Playgrounds', value: String(result.playgroundLimit), inline: true },
-        { name: 'Features', value: featureLabels || '—', inline: false },
-        { name: 'Code ID', value: `\`${result.codeId}\``, inline: false },
-      )
-      .setFooter({
-        text: 'Redeem at the web panel · Only visible to you.',
-      });
+    const embed = successEmbed('✅ Redeem Code Created').addFields(
+      { name: 'Code', value: `\`\`\`\n${result.code}\n\`\`\``, inline: false },
+      { name: 'Duration', value: durationLabel, inline: true },
+      { name: 'Playgrounds', value: String(result.playgroundLimit), inline: true },
+      { name: 'Features', value: featureLabels || '—', inline: false },
+      { name: 'Code ID', value: `\`${result.codeId}\``, inline: false },
+    );
 
     if (note) {
       embed.addFields({ name: 'Note', value: note, inline: false });
@@ -165,4 +156,4 @@ export async function execute(
       embeds: [errorEmbed('❌ Code Creation Failed', message)],
     });
   }
-   }
+  }
