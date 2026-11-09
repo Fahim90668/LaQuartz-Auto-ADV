@@ -44,7 +44,6 @@ export class ContinuousManager {
       const now = Date.now();
       const activeIds = new Set(services.map((s) => s.id));
 
-      // Stop live connections that were deleted or expired
       for (const [id, live] of this.live.entries()) {
         if (!activeIds.has(id)) {
           try { live.stop(); } catch { /* ignore */ }
@@ -56,7 +55,6 @@ export class ContinuousManager {
       for (const svc of services) {
         const exp = new Date(svc.expiresAt).getTime();
 
-        // Expired: stop and mark
         if (exp <= now) {
           const live = this.live.get(svc.id);
           if (live) {
@@ -68,7 +66,6 @@ export class ContinuousManager {
           continue;
         }
 
-        // Paused: not running, but keep the row
         if (svc.status === 'paused') {
           const live = this.live.get(svc.id);
           if (live) {
@@ -79,7 +76,6 @@ export class ContinuousManager {
           continue;
         }
 
-        // Not yet running — try to start
         if (!this.live.has(svc.id)) {
           try {
             const stop = await this.startService(svc);
@@ -100,7 +96,6 @@ export class ContinuousManager {
             });
           }
         } else {
-          // Heartbeat for still-alive service
           await continuousDb.touchService(svc.id).catch(() => {});
         }
       }
@@ -139,7 +134,7 @@ export class ContinuousManager {
   }
 }
 
-/* ─── Onliner: gateway WebSocket + presence ──────────────────────────── */
+/* ─── Onliner: gateway WebSocket + custom rich presence ─────────────── */
 
 interface GatewayFrame {
   op: number;
@@ -148,21 +143,68 @@ interface GatewayFrame {
   t?: string;
 }
 
+interface ActivityConfig {
+  type?: number;      // 0=Playing 1=Streaming 2=Listening 3=Watching 4=Custom 5=Competing
+  name?: string;
+  state?: string;
+  details?: string;
+  url?: string;
+}
+
+function buildActivities(config: Record<string, unknown>): Record<string, unknown>[] {
+  const activity = config.activity as ActivityConfig | undefined;
+  if (!activity?.name || activity.name.trim().length < 2) return [];
+
+  let type = Number(activity.type ?? 0);
+  const name = activity.name.trim();
+  if (name.length > 128) return [];
+
+  const obj: Record<string, unknown> = { name, type };
+
+  if (activity.state && activity.state.trim()) {
+    const s = activity.state.trim().slice(0, 128);
+    if (s) obj.state = s;
+  }
+  if (activity.details && activity.details.trim()) {
+    const d = activity.details.trim().slice(0, 128);
+    if (d) obj.details = d;
+  }
+
+  // Streaming (type 1) requires a valid URL — degrade to Playing if missing
+  if (type === 1) {
+    if (activity.url && /^https?:\/\//i.test(activity.url)) {
+      obj.url = activity.url;
+    } else {
+      type = 0;
+      obj.type = 0;
+    }
+  }
+
+  return [obj];
+}
+
 function startOnliner(svc: ContinuousService, token: string): () => void {
   const log = getLogger().child({ serviceId: svc.id, type: 'onliner' });
   let ws: WebSocket | null = null;
   let heartbeat: NodeJS.Timeout | null = null;
+  let autoTimer: NodeJS.Timeout | null = null;
   let lastSeq: number | null = null;
   let alive = true;
   let reconnectAttempts = 0;
 
-  const presence = (svc.config.presence as string) || 'online';
-  const activity = svc.config.activity as
-    | { name?: string; type?: number; state?: string; details?: string; url?: string }
-    | undefined;
+  const initialStatus = String(svc.config.presence ?? 'online');
+  const autoCycle = svc.config.autoCycle === true;
+  const autoIntervalSeconds = Math.max(30, Number(svc.config.autoIntervalSeconds ?? 300));
+
+  const cycleStatuses = ['online', 'idle', 'dnd'] as const;
+  let cycleIdx = cycleStatuses.indexOf(initialStatus as (typeof cycleStatuses)[number]);
+  if (cycleIdx < 0) cycleIdx = 0;
+
+  const activities = buildActivities(svc.config);
 
   const cleanupSocket = () => {
     if (heartbeat) { clearInterval(heartbeat); heartbeat = null; }
+    if (autoTimer) { clearInterval(autoTimer); autoTimer = null; }
     if (ws) {
       try { ws.close(); } catch { /* ignore */ }
       ws = null;
@@ -179,9 +221,7 @@ function startOnliner(svc: ContinuousService, token: string): () => void {
       return;
     }
 
-    ws.onopen = () => {
-      reconnectAttempts = 0;
-    };
+    ws.onopen = () => { reconnectAttempts = 0; };
 
     ws.onmessage = (event: MessageEvent) => {
       let frame: GatewayFrame;
@@ -193,7 +233,6 @@ function startOnliner(svc: ContinuousService, token: string): () => void {
       if (typeof frame.s === 'number') lastSeq = frame.s;
 
       if (frame.op === 10) {
-        // Hello — start heartbeat + identify
         const d = frame.d as { heartbeat_interval?: number } | undefined;
         const interval = d?.heartbeat_interval ?? 41_250;
 
@@ -203,28 +242,14 @@ function startOnliner(svc: ContinuousService, token: string): () => void {
           }
         }, interval);
 
-        const activities = activity?.name
-          ? [{
-              name: activity.name,
-              type: activity.type ?? 0,
-              ...(activity.state ? { state: activity.state } : {}),
-              ...(activity.details ? { details: activity.details } : {}),
-              ...(activity.url ? { url: activity.url } : {}),
-            }]
-          : [];
-
         ws.send(JSON.stringify({
           op: 2,
           d: {
             token,
             capabilities: 30717,
-            properties: {
-              os: 'Windows',
-              browser: 'Chrome',
-              device: '',
-            },
+            properties: { os: 'Windows', browser: 'Chrome', device: '' },
             presence: {
-              status: presence,
+              status: initialStatus,
               since: 0,
               activities,
               afk: false,
@@ -232,25 +257,44 @@ function startOnliner(svc: ContinuousService, token: string): () => void {
             compress: false,
           },
         }));
-        log.info('onliner identified', { presence });
+
+        log.info('onliner identified', {
+          presence: initialStatus,
+          hasActivity: activities.length > 0,
+          activityName: activities[0]?.name ?? null,
+          autoCycle,
+          autoIntervalSeconds: autoCycle ? autoIntervalSeconds : null,
+        });
+
+        if (autoCycle && !autoTimer) {
+          autoTimer = setInterval(() => {
+            if (!ws || ws.readyState !== WebSocket.OPEN) return;
+            cycleIdx = (cycleIdx + 1) % cycleStatuses.length;
+            const nextStatus = cycleStatuses[cycleIdx]!;
+            try {
+              ws.send(JSON.stringify({
+                op: 3,
+                d: {
+                  status: nextStatus,
+                  since: 0,
+                  activities,
+                  afk: false,
+                },
+              }));
+              log.info('onliner presence cycle', { status: nextStatus });
+            } catch (err) {
+              log.warn('onliner presence cycle failed', {
+                err: (err as Error).message,
+              });
+            }
+          }, autoIntervalSeconds * 1000);
+        }
         return;
       }
 
-      if (frame.op === 11) return; // Heartbeat ACK
-
-      if (frame.op === 7) {
-        log.warn('onliner reconnect requested');
-        cleanupSocket();
-        setTimeout(connect, 3_000);
-        return;
-      }
-
-      if (frame.op === 9) {
-        log.warn('onliner invalid session');
-        cleanupSocket();
-        setTimeout(connect, 5_000);
-        return;
-      }
+      if (frame.op === 11) return;
+      if (frame.op === 7) { cleanupSocket(); setTimeout(connect, 3_000); return; }
+      if (frame.op === 9) { cleanupSocket(); setTimeout(connect, 5_000); return; }
     };
 
     ws.onclose = () => {
@@ -258,13 +302,14 @@ function startOnliner(svc: ContinuousService, token: string): () => void {
       cleanupSocket();
       reconnectAttempts++;
       const wait = Math.min(30_000, 2_000 * reconnectAttempts);
-      log.warn('onliner ws closed — reconnecting', { inMs: wait, attempts: reconnectAttempts });
+      log.warn('onliner ws closed — reconnecting', {
+        inMs: wait,
+        attempts: reconnectAttempts,
+      });
       setTimeout(connect, wait);
     };
 
-    ws.onerror = () => {
-      log.warn('onliner ws error');
-    };
+    ws.onerror = () => { log.warn('onliner ws error'); };
   };
 
   connect();
@@ -295,12 +340,9 @@ function startTyper(svc: ContinuousService, token: string): () => void {
           },
         },
       );
-
       if (!res.ok) {
         log.warn('typer ping failed', { status: res.status });
-        if (res.status === 401) {
-          throw new Error('Token invalid (401)');
-        }
+        if (res.status === 401) throw new Error('Token invalid (401)');
       } else {
         await continuousDb.touchService(svc.id).catch(() => {});
       }
