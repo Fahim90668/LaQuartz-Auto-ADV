@@ -1,5 +1,5 @@
 export type UserRole = 'user' | 'admin';
-export type CodeDuration = 'lifetime' | '1m' | '3m';
+export type CodeDuration = 'lifetime' | '1m' | '3m' | 'custom';
 export type CodeStatus = 'active' | 'redeemed' | 'destroyed' | 'expired';
 export type EntitlementStatus = 'active' | 'expired' | 'revoked';
 export type AccountStatus = 'active' | 'invalid' | 'checking' | 'removed';
@@ -216,4 +216,4 @@ export interface AuditLogDTO {
 export interface PaginatedResult<T> {
   items: T[];
   nextCursor: string | number | null;
-}
+  }
