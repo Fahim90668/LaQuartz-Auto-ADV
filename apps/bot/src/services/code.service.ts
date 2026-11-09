@@ -111,4 +111,4 @@ export async function destroyCode(
 
 export async function listRecentCodes(limit = 10): Promise<RedeemCodeDTO[]> {
   return codesDb.listCodesForAdmin(limit);
-    }
+}
