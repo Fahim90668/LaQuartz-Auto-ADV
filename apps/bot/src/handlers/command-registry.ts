@@ -30,4 +30,4 @@ export function getHandler(name: string): CommandHandler | null {
 
 export function listCommandNames(): string[] {
   return handlers.map((h) => h.data.name);
-}
+  }
