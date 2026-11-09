@@ -4,6 +4,7 @@ import * as destroyCode from '../commands/destroy-code.js';
 import * as codeInfo from '../commands/code-info.js';
 import * as stats from '../commands/stats.js';
 import * as postUpdate from '../commands/post-update.js';
+import * as continuous247 from '../commands/continuous247.js';
 
 export interface CommandHandler {
   data: SlashCommandOptionsOnlyBuilder;
@@ -16,6 +17,7 @@ const handlers: CommandHandler[] = [
   codeInfo,
   stats,
   postUpdate,
+  continuous247,
 ];
 
 export function getCommands(): SlashCommandOptionsOnlyBuilder[] {
@@ -28,4 +30,4 @@ export function getHandler(name: string): CommandHandler | null {
 
 export function listCommandNames(): string[] {
   return handlers.map((h) => h.data.name);
-  }
+}
