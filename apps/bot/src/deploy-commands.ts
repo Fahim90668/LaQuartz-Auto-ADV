@@ -1,21 +1,25 @@
 import { REST, Routes } from 'discord.js';
-import { loadEnv } from './env.js';
 import { getCommands } from './handlers/command-registry.js';
 
 async function main() {
-  const env = loadEnv();
-  const commands = getCommands().map((c) => c.toJSON());
+  const token = process.env.DISCORD_BOT_TOKEN;
+  const guildId = process.env.DISCORD_GUILD_ID;
 
-  const rest = new REST({ version: '10' }).setToken(env.DISCORD_BOT_TOKEN);
+  if (!token) {
+    throw new Error('DISCORD_BOT_TOKEN is not set.');
+  }
+  if (!guildId || !/^\d{17,20}$/.test(guildId)) {
+    throw new Error('DISCORD_GUILD_ID is not set or not a valid snowflake.');
+  }
+
+  const commands = getCommands().map((c) => c.toJSON());
+  const rest = new REST({ version: '10' }).setToken(token);
 
   console.info(`[deploy] registering ${commands.length} guild commands…`);
 
   try {
     const result = (await rest.put(
-      Routes.applicationGuildCommands(
-        clientIdFromToken(env.DISCORD_BOT_TOKEN),
-        env.DISCORD_GUILD_ID,
-      ),
+      Routes.applicationGuildCommands(clientIdFromToken(token), guildId),
       { body: commands },
     )) as Array<{ name: string }>;
 
