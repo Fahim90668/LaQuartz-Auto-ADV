@@ -44,6 +44,9 @@ export interface EntitlementDTO {
   userId: string;
   codeId: string;
   playgroundLimit: number;
+  limitOnliner: number;
+  limitVc: number;
+  limitTyper: number;
   status: EntitlementStatus;
   startsAt: string;
   expiresAt: string | null;
@@ -57,6 +60,9 @@ export interface RedeemCodeDTO {
   duration: CodeDuration;
   durationDays: number | null;
   playgroundLimit: number;
+  limitOnliner: number;
+  limitVc: number;
+  limitTyper: number;
   status: CodeStatus;
   redeemedBy: string | null;
   redeemedAt: string | null;
@@ -216,4 +222,31 @@ export interface AuditLogDTO {
 export interface PaginatedResult<T> {
   items: T[];
   nextCursor: string | number | null;
+}
+
+export type ContinuousType = 'onliner' | 'vc' | 'typer';
+export type ContinuousStatus = 'pending' | 'active' | 'paused' | 'expired' | 'error';
+
+export interface ContinuousServiceDTO {
+  id: string;
+  userId: string;
+  accountId: string;
+  serviceType: ContinuousType;
+  config: Record<string, unknown>;
+  status: ContinuousStatus;
+  startsAt: string;
+  expiresAt: string;
+  lastSeenAt: string | null;
+  lastError: string | null;
+  lastErrorAt: string | null;
+  stoppedAt: string | null;
+}
+
+export interface UpdateDTO {
+  id: string;
+  title: string;
+  body: string;
+  version: string | null;
+  tags: string[];
+  published_at: string;
   }
