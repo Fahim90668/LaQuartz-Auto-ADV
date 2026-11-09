@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import * as Dialog from '@radix-ui/react-dialog';
 import {
-  X, Zap, LayoutDashboard, Users, Sparkles, Ticket, Settings, BookOpen,
+  X,
+  Zap,
+  LayoutDashboard,
+  Users,
+  Sparkles,
+  Clock,
+  Ticket,
+  Settings,
+  BookOpen,
 } from 'lucide-react';
 import { NavItem } from './NavItem';
 import { cn } from '@/components/ui/cn';
@@ -13,12 +21,19 @@ const items = [
   { href: '/overview',    label: 'Overview',    icon: LayoutDashboard },
   { href: '/accounts',    label: 'Accounts',    icon: Users },
   { href: '/playgrounds', label: 'Playgrounds', icon: Sparkles },
+  { href: '/247',         label: '24/7',        icon: Clock },
   { href: '/redeem',      label: 'Redeem',      icon: Ticket },
   { href: '/docs',        label: 'Docs',        icon: BookOpen },
   { href: '/settings',    label: 'Settings',    icon: Settings },
 ];
 
-function SidebarInner({ onNavigate, showClose }: { onNavigate?: () => void; showClose?: boolean }) {
+function SidebarInner({
+  onNavigate,
+  showClose,
+}: {
+  onNavigate?: () => void;
+  showClose?: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -117,4 +132,4 @@ export function Sidebar({ open, onOpenChange }: SidebarProps) {
       </Dialog.Root>
     </>
   );
-          }
+   }
