@@ -5,7 +5,6 @@ import {
 } from 'discord.js';
 import { getServiceClient } from '@app/db';
 import { successEmbed, errorEmbed } from '../lib/embeds.js';
-import { recordBotAudit } from '../services/audit.service.js';
 
 export const data: SlashCommandOptionsOnlyBuilder = new SlashCommandBuilder()
   .setName('post-update')
@@ -66,27 +65,17 @@ export async function execute(
         tags,
         created_by: interaction.user.id,
       })
-      .select('id, published_at')
+      .select('id')
       .single();
 
     if (error) throw error;
 
-    await recordBotAudit({
-      adminDiscordId: interaction.user.id,
-      action: 'update.publish',
-      targetType: 'update',
-      targetId: data.id,
-      metadata: { title, version, tags, source: 'discord-bot' },
-    });
-
-    const embed = successEmbed('📣 Published')
-      .addFields(
-        { name: 'Title', value: title, inline: false },
-        { name: 'Version', value: version || '—', inline: true },
-        { name: 'Tags', value: tags.length ? tags.join(', ') : '—', inline: true },
-        { name: 'ID', value: `\`${data.id}\``, inline: false },
-      )
-      .setFooter({ text: 'Users will see this in the notification bell.' });
+    const embed = successEmbed('📣 Published').addFields(
+      { name: 'Title', value: title, inline: false },
+      { name: 'Version', value: version || '—', inline: true },
+      { name: 'Tags', value: tags.length ? tags.join(', ') : '—', inline: true },
+      { name: 'ID', value: `\`${data.id}\``, inline: false },
+    );
 
     await interaction.editReply({ embeds: [embed] });
   } catch (err) {
@@ -94,4 +83,4 @@ export async function execute(
       embeds: [errorEmbed('❌ Publish failed', (err as Error).message)],
     });
   }
-    }
+  }
