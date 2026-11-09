@@ -1,4 +1,4 @@
-import type { RedeemCodeDTO, RedeemResult } from '@app/shared';
+import type { CodeDuration, RedeemCodeDTO, RedeemResult } from '@app/shared';
 import { getServiceClient } from '../client-service.js';
 import type { Database } from '../types.generated.js';
 
@@ -8,7 +8,7 @@ function toDTO(row: CodeRow): RedeemCodeDTO {
   return {
     id: row.id,
     codePreview: row.code_preview,
-    duration: row.duration,
+    duration: row.duration as CodeDuration,
     durationDays: row.duration_days,
     playgroundLimit: row.playground_limit,
     status: row.status,
@@ -51,8 +51,12 @@ export async function redeemCode(
 export interface CreateCodeRpcInput {
   codeHash: string;
   codePreview: string;
-  duration: 'lifetime' | '1m' | '3m';
+  duration: CodeDuration;
+  durationDays?: number | null;
   playgroundLimit: number;
+  limitOnliner?: number;
+  limitVc?: number;
+  limitTyper?: number;
   adminDiscordId: string;
   note?: string;
 }
@@ -70,6 +74,10 @@ export async function botCreateCode(input: CreateCodeRpcInput): Promise<CreateCo
     p_playground_limit: input.playgroundLimit,
     p_admin_discord_id: input.adminDiscordId,
     p_note: input.note ?? null,
+    p_duration_days: input.durationDays ?? null,
+    p_limit_onliner: input.limitOnliner ?? 0,
+    p_limit_vc: input.limitVc ?? 0,
+    p_limit_typer: input.limitTyper ?? 0,
   });
   if (error) throw error;
 
@@ -113,4 +121,4 @@ export async function listCodesForAdmin(limit = 50): Promise<RedeemCodeDTO[]> {
 
   if (error) throw error;
   return (data ?? []).map(toDTO);
-  }
+    }
