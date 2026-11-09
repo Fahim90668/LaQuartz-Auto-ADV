@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Plus,
   X,
@@ -8,6 +8,8 @@ import {
   AlertCircle,
   RefreshCw,
   CircleDot,
+  Sparkles,
+  Radio,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Dialog } from '@/components/ui/Dialog';
@@ -15,6 +17,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Badge } from '@/components/ui/Badge';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { Switch } from '@/components/ui/Switch';
 import { TimeSelector } from '@/components/ui/TimeSelector';
 import { useAccounts } from '@/hooks/useAccounts';
 import {
@@ -25,7 +28,6 @@ import {
   type ContinuousType,
 } from '@/hooks/useContinuous';
 import { useToast } from '@/hooks/useToast';
-import { formatRelative } from '@/lib/formatters';
 import { cn } from '@/components/ui/cn';
 
 const SERVICE_LABELS: Record<ContinuousType, string> = {
@@ -40,7 +42,25 @@ const SERVICE_HINTS: Record<ContinuousType, string> = {
   typer: 'Sends periodic typing indicator to a channel.',
 };
 
-const STATUS_TONE: Record<ContinuousService['status'], 'success' | 'warning' | 'danger' | 'neutral' | 'brand'> = {
+const ACTIVITY_TYPES = [
+  { value: '0', label: 'Playing' },
+  { value: '2', label: 'Listening to' },
+  { value: '3', label: 'Watching' },
+  { value: '5', label: 'Competing in' },
+  { value: '1', label: 'Streaming' },
+] as const;
+
+const PRESENCE_OPTIONS = [
+  { value: 'online', label: 'Online' },
+  { value: 'idle', label: 'Idle' },
+  { value: 'dnd', label: 'Do Not Disturb' },
+  { value: 'invisible', label: 'Invisible' },
+] as const;
+
+const STATUS_TONE: Record<
+  ContinuousService['status'],
+  'success' | 'warning' | 'danger' | 'neutral'
+> = {
   pending: 'warning',
   active: 'success',
   paused: 'neutral',
@@ -48,12 +68,29 @@ const STATUS_TONE: Record<ContinuousService['status'], 'success' | 'warning' | '
   error: 'danger',
 };
 
+function formatCountdown(targetIso: string, now: number): string {
+  const diff = new Date(targetIso).getTime() - now;
+  if (diff <= 0) return 'expired';
+  const h = Math.floor(diff / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  const s = Math.floor((diff % 60_000) / 1000);
+  if (h > 0) return `${h}h ${m}m ${s}s`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
 export default function ContinuousPage() {
   const { data: accounts } = useAccounts();
   const { data: services, isLoading, refetch, isFetching } = useContinuousList();
   const stop = useStopContinuous();
   const create = useCreateContinuous();
   const toast = useToast((s) => s.push);
+
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const accountLabelById = useMemo(() => {
     const map = new Map<string, string>();
@@ -67,6 +104,16 @@ export default function ContinuousPage() {
   const [seconds, setSeconds] = useState(3600);
   const [channelId, setChannelId] = useState('');
   const [presence, setPresence] = useState('online');
+  const [autoCycle, setAutoCycle] = useState(false);
+  const [autoIntervalSeconds, setAutoIntervalSeconds] = useState(300);
+
+  // Rich presence fields
+  const [activityType, setActivityType] = useState('0');
+  const [activityName, setActivityName] = useState('');
+  const [activityState, setActivityState] = useState('');
+  const [activityDetails, setActivityDetails] = useState('');
+  const [activityUrl, setActivityUrl] = useState('');
+
   const [error, setError] = useState<string | null>(null);
 
   const activeAccounts = (accounts ?? []).filter((a) => a.status === 'active');
@@ -78,6 +125,13 @@ export default function ContinuousPage() {
     setSeconds(3600);
     setChannelId('');
     setPresence('online');
+    setAutoCycle(false);
+    setAutoIntervalSeconds(300);
+    setActivityType('0');
+    setActivityName('');
+    setActivityState('');
+    setActivityDetails('');
+    setActivityUrl('');
     setError(null);
   };
 
@@ -89,9 +143,34 @@ export default function ContinuousPage() {
         return setError('Enter a valid channel ID (17–20 digits).');
       }
     }
+    if (serviceType === 'onliner' && activityName.trim()) {
+      if (activityName.trim().length < 2) {
+        return setError('Activity name must be at least 2 characters.');
+      }
+      if (activityType === '1' && !/^https?:\/\//i.test(activityUrl)) {
+        return setError('Streaming type requires a valid URL (https://...).');
+      }
+    }
 
-    const config: Record<string, unknown> =
-      serviceType === 'onliner' ? { presence } : { channelId };
+    const config: Record<string, unknown> = {};
+    if (serviceType === 'onliner') {
+      config.presence = presence;
+      if (autoCycle) {
+        config.autoCycle = true;
+        config.autoIntervalSeconds = autoIntervalSeconds;
+      }
+      if (activityName.trim()) {
+        config.activity = {
+          type: Number(activityType),
+          name: activityName.trim(),
+          ...(activityState.trim() ? { state: activityState.trim() } : {}),
+          ...(activityDetails.trim() ? { details: activityDetails.trim() } : {}),
+          ...(activityType === '1' && activityUrl ? { url: activityUrl } : {}),
+        };
+      }
+    } else {
+      config.channelId = channelId;
+    }
 
     create.mutate(
       { accountId, serviceType, durationSeconds: seconds, config },
@@ -115,8 +194,8 @@ export default function ContinuousPage() {
           </h2>
           <p className="mt-1 max-w-xl text-step--1 text-text-secondary">
             Keep linked accounts online, in voice, or continuously typing. Each
-            service runs until its expiry time, then is automatically stopped by the
-            worker.
+            service runs until its expiry time, then is automatically stopped by
+            the worker.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -137,10 +216,17 @@ export default function ContinuousPage() {
 
       {!hasActiveAccount && (
         <div className="flex items-start gap-2 rounded-md border border-[color:var(--break)]/30 bg-[color:var(--break)]/5 p-3 text-step--1 text-text-secondary">
-          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--break)]" aria-hidden />
+          <AlertCircle
+            className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--break)]"
+            aria-hidden
+          />
           <p>
-            You need at least one <strong>active Discord account</strong> before creating
-            a 24/7 service. Add one in <a href="/accounts" className="link-underline text-[color:var(--primary)]">Accounts</a>.
+            You need at least one <strong>active Discord account</strong> before
+            creating a 24/7 service. Add one in{' '}
+            <a href="/accounts" className="link-underline text-[color:var(--primary)]">
+              Accounts
+            </a>
+            .
           </p>
         </div>
       )}
@@ -148,10 +234,12 @@ export default function ContinuousPage() {
       {isLoading ? (
         <div
           className="grid gap-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+          }}
         >
-          <Skeleton className="h-40 w-full" />
-          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-44 w-full" />
+          <Skeleton className="h-44 w-full" />
         </div>
       ) : !services || services.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border-subtle bg-surface/50 p-10 text-center">
@@ -171,19 +259,26 @@ export default function ContinuousPage() {
       ) : (
         <div
           className="grid gap-3"
-          style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}
+          style={{
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+          }}
         >
           {services.map((s) => (
             <ServiceCard
               key={s.id}
               service={s}
               accountLabel={accountLabelById.get(s.accountId) ?? 'Unknown account'}
+              now={now}
               onStop={() => {
                 if (!window.confirm('Stop this service now?')) return;
                 stop.mutate(s.id, {
                   onSuccess: () => toast({ kind: 'info', title: 'Service stopped' }),
                   onError: (err) =>
-                    toast({ kind: 'error', title: 'Failed to stop', description: err.message }),
+                    toast({
+                      kind: 'error',
+                      title: 'Failed to stop',
+                      description: err.message,
+                    }),
                 });
               }}
               stopping={stop.isPending}
@@ -197,11 +292,17 @@ export default function ContinuousPage() {
         onOpenChange={setOpen}
         title="New 24/7 service"
         description="Pick an account, a service type, and how long it should run."
-        size="md"
+        size="lg"
         footer={
           <>
-            <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button loading={create.isPending} onClick={handleCreate} disabled={!hasActiveAccount}>
+            <Button variant="ghost" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              loading={create.isPending}
+              onClick={handleCreate}
+              disabled={!hasActiveAccount}
+            >
               Create service
             </Button>
           </>
@@ -220,7 +321,9 @@ export default function ContinuousPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-step--2 text-text-tertiary">Service type</label>
+            <label className="mb-1 block text-step--2 text-text-tertiary">
+              Service type
+            </label>
             <Select
               value={serviceType}
               onValueChange={(v) => setServiceType(v as ContinuousType)}
@@ -230,28 +333,157 @@ export default function ContinuousPage() {
                 { value: 'typer', label: SERVICE_LABELS.typer },
               ]}
             />
-            <p className="mt-1 text-step--2 text-text-tertiary">{SERVICE_HINTS[serviceType]}</p>
+            <p className="mt-1 text-step--2 text-text-tertiary">
+              {SERVICE_HINTS[serviceType]}
+            </p>
           </div>
 
           {serviceType === 'onliner' && (
-            <div>
-              <label className="mb-1 block text-step--2 text-text-tertiary">Presence</label>
-              <Select
-                value={presence}
-                onValueChange={setPresence}
-                options={[
-                  { value: 'online', label: 'Online' },
-                  { value: 'idle', label: 'Idle' },
-                  { value: 'dnd', label: 'Do Not Disturb' },
-                  { value: 'invisible', label: 'Invisible' },
-                ]}
-              />
-            </div>
+            <>
+              <div>
+                <label className="mb-1 block text-step--2 text-text-tertiary">
+                  Presence status
+                </label>
+                <Select
+                  value={presence}
+                  onValueChange={setPresence}
+                  options={[...PRESENCE_OPTIONS]}
+                  disabled={autoCycle}
+                />
+                {autoCycle && (
+                  <p className="mt-1 text-step--2 text-text-tertiary">
+                    Presence status is overridden while auto-cycle is on.
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-border-subtle bg-surface-2 p-3">
+                <div>
+                  <p className="text-step--1 font-medium text-text-primary">
+                    Auto-cycle presence
+                  </p>
+                  <p className="text-step--2 text-text-tertiary">
+                    Rotate online → idle → dnd every interval.
+                  </p>
+                </div>
+                <Switch
+                  checked={autoCycle}
+                  onCheckedChange={setAutoCycle}
+                  id="auto-cycle"
+                />
+              </div>
+
+              {autoCycle && (
+                <div>
+                  <label className="mb-1 block text-step--2 text-text-tertiary">
+                    Cycle interval (seconds)
+                  </label>
+                  <Input
+                    type="number"
+                    min={30}
+                    max={3600}
+                    value={autoIntervalSeconds}
+                    onChange={(e) =>
+                      setAutoIntervalSeconds(
+                        Math.max(30, Math.min(3600, parseInt(e.target.value || '300', 10))),
+                      )
+                    }
+                    className="font-mono"
+                  />
+                  <p className="mt-1 text-step--2 text-text-tertiary">
+                    Minimum 30s · maximum 3600s (1 hour).
+                  </p>
+                </div>
+              )}
+
+              <details className="rounded-md border border-border-subtle bg-surface-2 p-3">
+                <summary className="cursor-pointer text-step--1 font-medium text-text-primary">
+                  <Sparkles className="mr-1 inline h-3.5 w-3.5 text-[color:var(--primary)]" />
+                  Rich presence (optional)
+                </summary>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <label className="mb-1 block text-step--2 text-text-tertiary">
+                      Activity type
+                    </label>
+                    <Select
+                      value={activityType}
+                      onValueChange={setActivityType}
+                      options={[...ACTIVITY_TYPES]}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-step--2 text-text-tertiary">
+                      Activity name
+                    </label>
+                    <Input
+                      value={activityName}
+                      onChange={(e) => setActivityName(e.target.value)}
+                      placeholder="e.g. LaQuartz AUTO-ADV"
+                      maxLength={128}
+                    />
+                    <p className="mt-1 text-step--2 text-text-tertiary">
+                      Shown as &quot;Playing <em>{activityName || 'X'}</em>&quot; in the
+                      member list.
+                    </p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="mb-1 block text-step--2 text-text-tertiary">
+                        State (line 2)
+                      </label>
+                      <Input
+                        value={activityState}
+                        onChange={(e) => setActivityState(e.target.value)}
+                        placeholder="optional"
+                        maxLength={128}
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-step--2 text-text-tertiary">
+                        Details (line 3)
+                      </label>
+                      <Input
+                        value={activityDetails}
+                        onChange={(e) => setActivityDetails(e.target.value)}
+                        placeholder="optional"
+                        maxLength={128}
+                      />
+                    </div>
+                  </div>
+                  {activityType === '1' && (
+                    <div>
+                      <label className="mb-1 block text-step--2 text-text-tertiary">
+                        Stream URL
+                      </label>
+                      <Input
+                        value={activityUrl}
+                        onChange={(e) => setActivityUrl(e.target.value)}
+                        placeholder="https://twitch.tv/yourname"
+                        className="font-mono"
+                      />
+                      <p className="mt-1 text-step--2 text-text-tertiary">
+                        Required for Streaming type. Must be https.
+                      </p>
+                    </div>
+                  )}
+                  <p className="flex items-start gap-1.5 rounded-md border border-[color:var(--break)]/30 bg-[color:var(--break)]/5 p-2 text-step--2 text-text-secondary">
+                    <span className="shrink-0 text-[color:var(--break)]">⚠️</span>
+                    <span>
+                      Rich presence is visible to everyone in the same servers as
+                      the account. Use text you&apos;re comfortable sharing publicly.
+                    </span>
+                  </p>
+                </div>
+              </details>
+            </>
           )}
 
           {(serviceType === 'vc' || serviceType === 'typer') && (
             <div>
-              <label className="mb-1 block text-step--2 text-text-tertiary">Channel ID</label>
+              <label className="mb-1 block text-step--2 text-text-tertiary">
+                Channel ID
+              </label>
               <Input
                 value={channelId}
                 onChange={(e) => setChannelId(e.target.value)}
@@ -275,7 +507,8 @@ export default function ContinuousPage() {
               maxSeconds={2_592_000}
             />
             <p className="mt-1 text-step--2 text-text-tertiary">
-              Minimum 1 minute · maximum 30 days. Service stops automatically at expiry.
+              Minimum 1 minute · maximum 30 days. Service stops automatically at
+              expiry.
             </p>
           </div>
 
@@ -293,76 +526,40 @@ export default function ContinuousPage() {
 function ServiceCard({
   service,
   accountLabel,
+  now,
   onStop,
   stopping,
 }: {
   service: ContinuousService;
   accountLabel: string;
+  now: number;
   onStop: () => void;
   stopping: boolean;
 }) {
   const isLive = service.status === 'active' || service.status === 'pending';
-  const configSummary =
+  const countdown = formatCountdown(service.expiresAt, now);
+
+  const activity = service.config.activity as
+    | { type?: number; name?: string; state?: string; details?: string }
+    | undefined;
+  const activityTypeLabel = ['Playing', '', 'Listening to', 'Watching', '', 'Competing in'][
+    Number(activity?.type ?? -1)
+  ];
+  const activitySummary = activity?.name
+    ? `${activityTypeLabel || 'Activity'}: ${activity.name}`
+    : null;
+
+  const presenceSummary =
     service.serviceType === 'onliner'
-      ? `presence: ${String(service.config.presence ?? 'online')}`
-      : `channel: ${String(service.config.channelId ?? '—')}`;
+      ? service.config.autoCycle === true
+        ? `auto-cycle every ${String(service.config.autoIntervalSeconds ?? 300)}s`
+        : `presence: ${String(service.config.presence ?? 'online')}`
+      : null;
+
+  const channelSummary =
+    service.serviceType !== 'onliner'
+      ? `channel: ${String(service.config.channelId ?? '—')}`
+      : null;
 
   return (
-    <div className="rounded-lg border border-border-subtle bg-surface p-4">
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <CircleDot
-            className={cn(
-              'h-3 w-3',
-              service.status === 'active' && 'text-[color:var(--neon)]',
-              service.status === 'pending' && 'text-[color:var(--break)]',
-              service.status === 'error' && 'text-danger',
-              service.status === 'expired' && 'text-text-tertiary',
-            )}
-            aria-hidden
-          />
-          <h3 className="text-step--1 font-semibold text-text-primary">
-            {SERVICE_LABELS[service.serviceType]}
-          </h3>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge tone={STATUS_TONE[service.status]}>{service.status}</Badge>
-          {isLive && (
-            <button
-              type="button"
-              onClick={onStop}
-              disabled={stopping}
-              className="rounded p-1 text-text-tertiary transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50"
-              aria-label="Stop service"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      <dl className="mt-3 space-y-1 text-step--2">
-        <div className="flex justify-between">
-          <dt className="text-text-tertiary">Account</dt>
-          <dd className="truncate text-text-secondary">{accountLabel}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-text-tertiary">Config</dt>
-          <dd className="truncate text-text-secondary font-mono">{configSummary}</dd>
-        </div>
-        <div className="flex justify-between">
-          <dt className="text-text-tertiary">
-            {service.status === 'expired' ? 'Expired' : 'Expires'}
-          </dt>
-          <dd className="text-text-secondary">{formatRelative(service.expiresAt)}</dd>
-        </div>
-      </dl>
-
-      {service.lastError && (
-        <p className="mt-3 rounded-md border border-danger/30 bg-danger/10 p-2 text-step--2 text-danger">
-          {service.lastError}
-        </p>
-      )}
-    </div>
-  );
-}
+    <div className="rounded-lg 
